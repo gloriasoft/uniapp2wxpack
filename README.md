@@ -3,7 +3,8 @@
 #### 对uni-app在微信小程序的打包方案进行改造，形成解耦打包，并且支持微信原生页面直接在uni-app项目中使用  
 + 可以使uni-app项目输出微信小程序的分包，被其他小程序项目使用  
 + 支持微信原生页面直接在uni-app项目中使用（还支持任何原生的js、wxss在uni-app项目中使用）  
-+ 支持原生小程序项目直接在uni-app项目中进行开发，uni-app包可以通过globalData进行方法公开，被原生小程序的其他页面和分包使用  
++ 支持原生小程序项目直接在uni-app项目中进行开发，uni-app项目可以通过全局对象wx，在main.js或者App.vue中的script中将相关的方法公开到wx对象中（因为解耦构建会在主小程序app.js的开头引入uni的三个主要js）  
+**注意：如果是单纯的输出分包给其他小程序项目，如果需要在onLaunch中调用uni分包的公开方法，需要手动在小程序项目的app.js引入uni分包common下的三个重要js文件，如果无需调用uni分包的方法，则不需要引入**  
 + 支持uni-app项目调用原生小程序项目中的资源   
 
 #### 安装  
@@ -155,6 +156,6 @@ uni.navigateTo({
 + 在uni项目中设置wxresource中的pages和subPackages  
 需要在uni项目中的pages.json中的wxResource中配置pages和subPackages  
 #### 路径问题  
-uni项目中如果使用了绝对路径，在解耦构建的项目中，根路径是指向了主小程序的根的，所以需要自行拼接上uni解耦包的目录名，推荐使用pack.config.js中的packPath动态获取拼接
+**uni项目中如果使用了绝对路径，在解耦构建的项目中，根路径是指向了主小程序的根的，所以需要自行拼接上uni解耦包的目录名，推荐使用pack.config.js中的packPath动态获取拼接**
 #### 其他  
 如果原生主小程序目录中已经存在了同uni解耦包命名相同的目录，在构建时，这个目录将被忽略，构建后的项目中的此目录是uni项目生成的解耦包

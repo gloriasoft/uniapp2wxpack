@@ -21,7 +21,8 @@
     const stripJsonComments = require('strip-json-comments')
     // const rfr = require('read-file-relative').readSync
     const strip = require('gulp-strip-comments')
-    const readline = require('readline');
+    // const readline = require('readline');
+    const log = require('single-line-log').stdout;
     const { program } = require('commander');
     program
         .option('--scope <type>','运行目录',process.cwd())
@@ -47,15 +48,17 @@
     const targetPath = path.resolve(cwd,target)
     let writeTimer
     function writeLastLine(val) {
-        // readline.clearLine(process.stdout);
-        readline.cursorTo(process.stdout, 0);
-        process.stdout.write(val);
+        log(val)
+        // readline.clearLine(process.stdout, 0);
+        // readline.cursorTo(process.stdout, 0);
+        // process.stdout.write(val);
         clearTimeout(writeTimer)
         writeTimer=setTimeout(()=>{
-            readline.clearLine(process.stdout);
-            readline.cursorTo(process.stdout, 0);
-            process.stdout.write('解耦构建，正在监听中......(此过程如果出现权限问题，请使用管理员权限运行)');
-        },1000)
+            // readline.clearLine(process.stdout, 0);
+            // readline.cursorTo(process.stdout, 0);
+            // process.stdout.write('解耦构建，正在监听中......(此过程如果出现权限问题，请使用管理员权限运行)');
+            log('解耦构建，正在监听中......(此过程如果出现权限问题，请使用管理员权限运行)')
+        },300)
     }
 
     async function tryAgain(awaitDone){
@@ -116,21 +119,21 @@
             typeMap[type]()
             try{
                 if(!config){
-                    config=JSON.parse(stripJsonComments(fs.readFileSync(path.resolve(cwd,'src/pages.json'))))
+                    config=JSON.parse(stripJsonComments(fs.readFileSync(path.resolve(cwd,'src/pages.json'),'utf8')))
                 }
             }catch(e){
                 config={}
             }
             try{
                 if(!appJson){
-                    appJson=JSON.parse(fs.readFileSync(path.resolve(cwd,base+'/app.json')))
+                    appJson=JSON.parse(fs.readFileSync(path.resolve(cwd,base+'/app.json'),'utf8'))
                 }
             }catch(e){
                 appJson={}
             }
             try{
                 if(!mainJson){
-                    mainJson=JSON.parse(fs.readFileSync(path.resolve(cwd,projectToSubPackageConfig.mainWeixinMpPath+'/app.json')))
+                    mainJson=JSON.parse(fs.readFileSync(path.resolve(cwd,projectToSubPackageConfig.mainWeixinMpPath+'/app.json'),'utf8'))
                 }
             }catch(e){
                 mainJson={}
@@ -305,7 +308,7 @@
         return gulp.src('src/pages.json',{allowEmpty:true,cwd})
             .pipe($.if(env==='dev',$.watch('src/pages.json',{cwd},function(event){
                 // console.log('处理'+event.path)
-                writeLastLine('处理'+event.path+'......')
+                writeLastLine('处理'+event.relative+'......')
             })))
             .pipe(mergeToTargetJson('pagesJson'))
             .pipe($.rename('app.json'))
@@ -316,7 +319,7 @@
         return gulp.src(base+'/app.json',{allowEmpty:true,cwd})
             .pipe($.if(env==='dev',$.watch(base+'/app.json',{cwd},function(event){
                 // console.log('处理'+event.path)
-                writeLastLine('处理'+event.path+'......')
+                writeLastLine('处理'+event.relative+'......')
             })))
             .pipe(mergeToTargetJson('baseAppJson'))
             .pipe(gulp.dest(target,{cwd}))
@@ -327,7 +330,7 @@
         return gulp.src(base+'/app.json',{allowEmpty:true,cwd})
             .pipe($.if(env==='dev',$.watch(base+'/app.json',{cwd},function(event){
                 // console.log('处理'+event.path)
-                writeLastLine('处理'+event.path+'......')
+                writeLastLine('处理'+event.relative+'......')
             })))
             .pipe(mergeToTargetJson('mainAppJson'))
             .pipe(gulp.dest(target,{cwd}))
@@ -336,10 +339,11 @@
     gulp.task('watch:mainWeixinMp',function(){
         let base=projectToSubPackageConfig.mainWeixinMpPath
         let basePackPath=base+'/'+projectToSubPackageConfig.subPackagePath
+        let filterAppJs=$.filter([base+'/app.js'],{restore:true})
         return gulp.src([base+'/**/*','!'+base+'/app.json','!'+base+'/**/*.json___jb_tmp___','!'+base+'/**/*.wxml___jb_tmp___','!'+base+'/**/*.wxss___jb_tmp___','!'+base+'/**/*.js___jb_tmp___','!'+basePackPath+'/**/*'],{base:path.resolve(cwd,base), allowEmpty: true,cwd})
             .pipe($.if(env==='dev',$.watch([base+'/**/*','!/'+base+'/app.json','!/'+basePackPath+'/**/*'],{cwd},function(event){
                 // console.log('处理'+event.path)w
-                writeLastLine('处理'+event.path+'......')
+                writeLastLine('处理'+event.relative+'......')
             })))
             .pipe($.filter(async function(file){
                 if(file.event === 'unlink'){
@@ -351,6 +355,14 @@
                     return true
                 }
             }))
+            .pipe(filterAppJs)
+            .pipe($.replace(/^/,function(match){
+                let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
+                return `require('${packagePath}common/runtime.js');\nrequire('${packagePath}common/vendor.js');\nrequire('${packagePath}common/main.js');\n`
+            },{
+                skipBinary:false
+            }))
+            .pipe(filterAppJs.restore)
             .pipe(gulp.dest(target,{cwd}));
     })
 
@@ -366,7 +378,7 @@
         return gulp.src([base+'/**',base,'!'+base+'/*.*'],{allowEmpty:true,cwd})
             .pipe($.if(env==='dev',$.watch([base+'/**',base,'!/'+base+'/*.*'],{cwd},function(event){
                 // console.log('处理'+event.path)
-                writeLastLine('处理'+event.path+'......')
+                writeLastLine('处理'+event.relative+'......')
             })))
             .pipe($.filter(async function(file){
                 if(file.event === 'unlink'){
@@ -389,22 +401,18 @@
             .pipe(f.restore)
             .pipe(filterJs)
             .pipe($.replace(/^/,function(match){
-                if(fs.existsSync('./src/'+this.file.relative)){
+                if(fs.existsSync(path.resolve(cwd,'src',this.file.relative))){
                     return match
                 }
                 let packagePath=getLevelPath(getLevel(this.file.relative))
-                return `
-                require('${packagePath}common/runtime.js');
-                require('${packagePath}common/vendor.js');
-                require('${packagePath}common/main.js');
-                `
+                return `require('${packagePath}common/runtime.js');\nrequire('${packagePath}common/vendor.js');\nrequire('${packagePath}common/main.js');\n`
             },{
                 skipBinary:false
             }))
             .pipe(filterJs.restore)
             .pipe(filterJson)
             .pipe($.replace(/[\s\S]*/,function(match){
-                if(!fs.existsSync('./src/'+this.file.relative.replace(/json$/,'vue')) && !fs.existsSync('./src/'+this.file.relative.replace(/json$/,'nvue'))){
+                if(!fs.existsSync(path.resolve(cwd,'src',this.file.relative.replace(/json$/,'vue'))) && !fs.existsSync(path.resolve(cwd,'src',this.file.relative.replace(/json$/,'nvue')))){
                     return match
                 }
                 let json=JSON.parse(this.file.contents.toString())
@@ -449,7 +457,7 @@
         return gulp.src(['src/wxresource/**','src/wxresource'],{allowEmpty: true,cwd})
             .pipe($.if(env === 'dev',$.watch(['src/wxresource/**','src/wxresource','!src/wxresource/**/*.*___jb_tmp___'],{cwd},function(event){
                 // console.log('处理'+event.path)
-                writeLastLine('处理'+event.path+'......')
+                writeLastLine('处理'+event.relative+'......')
             })))
             .pipe(filterJs)
             .pipe(strip())

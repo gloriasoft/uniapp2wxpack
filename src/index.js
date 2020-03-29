@@ -27,7 +27,7 @@
         console.log('projectToSubPackageConfig.mainWeixinMpPath创建成功')
 
         // 使用同步进程
-        const workerProcess = spawnSync(process.platform==='win32'?'npm.cmd':'npm',['install','concurrently','cross-env', '-S'],{
+        const workerProcess = spawnSync(process.platform==='win32'?'npm.cmd':'npm',['install','concurrently','cross-env','uniapp2wxpack', '-S'],{
             cwd:process.cwd(),
             stdio: 'inherit'
         })

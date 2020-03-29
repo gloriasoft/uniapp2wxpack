@@ -238,18 +238,44 @@
 
             // merge pages
             targetJson.pages=Array.from(new Set([
-                    ...(config.indexPage ? [addSubPackagePath(config.indexPage)] : []),
+                    ...config.indexPage ? [addSubPackagePath(config.indexPage)] : [],
                     ...mainJson.pages || [],
                     ...appJson.pages || [],
                     ...config.wxResource && config.wxResource.pages || []
                 ]
             ))
 
+            // check subPackages from config & appJson
+            let uniSubPackages=[], uniSubPackagesMap={}
+            function checkValidSubPackages(subPackages){
+                subPackages.forEach((sub)=>{
+                    if(!uniSubPackagesMap[sub.root]){
+                        uniSubPackagesMap[sub.root]=sub.pages
+                    }else{
+                        // 去重
+                        uniSubPackagesMap[sub.root]=Array.from(new Set([
+                            ...uniSubPackagesMap[sub.root],
+                            ...sub.pages
+                        ]))
+                    }
+                })
+            }
+
+            // wxResource和基础输出的app.json中的subPackages进行合并
+            checkValidSubPackages(config.wxResource && config.wxResource.subPackages || [])
+            checkValidSubPackages(appJson.subPackages || [])
+            checkValidSubPackages(mainJson.subPackages || [])
+
+            for(let i in uniSubPackagesMap){
+                uniSubPackages.push({
+                    root: i,
+                    pages: uniSubPackagesMap[i]
+                })
+            }
+
             // merge subPackages
             targetJson.subPackages=[
-                ...config.wxResource && config.wxResource.subPackages || [],
-                ...appJson.subPackages || [],
-                ...mainJson.subPackages || []
+                ...uniSubPackages
             ]
 
             // usingComponents
@@ -358,7 +384,7 @@
             .pipe(filterAppJs)
             .pipe($.replace(/^/,function(match){
                 let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
-                return `require('${packagePath}common/runtime.js');\nrequire('${packagePath}common/vendor.js');\nrequire('${packagePath}common/main.js');\n`
+                return `require('${packagePath}app.js');\n`
             },{
                 skipBinary:false
             }))
@@ -371,12 +397,12 @@
         await (fs.mkdirs(basePath))
         let f=$.filter([base+'/common/vendor.js',base+'/common/main.js',base+'/common/runtime.js',base+'/pages/**/*.js'],{restore:true})
         let filterVendor=$.filter([base+'/common/vendor.js'],{restore:true})
-        let filterJs=$.filter([base+'/**/*.js','!'+base+'/common/vendor.js','!'+base+'/common/main.js','!'+base+'/common/runtime.js'],{restore:true})
-        let filterWxss=$.filter([base+'/**/*.wxss'],{restore:true})
+        let filterJs=$.filter([base+'/**/*.js','!'+base+'/app.js','!'+base+'/common/vendor.js','!'+base+'/common/main.js','!'+base+'/common/runtime.js'],{restore:true})
+        let filterWxss=$.filter([base+'/**/*.wxss','!'+base+'/app.wxss','!'+base+'/common/main.wxss'],{restore:true})
         let filterJson=$.filter([base+'/**/*.json'],{restore:true})
         // let filterWxml=$.filter([base+'/**/*.wxml'],{restore:true})
-        return gulp.src([base+'/**',base,'!'+base+'/*.*'],{allowEmpty:true,cwd})
-            .pipe($.if(env==='dev',$.watch([base+'/**',base,'!/'+base+'/*.*'],{cwd},function(event){
+        return gulp.src([base+'/**','!'+base+'/*.*',base+'/app.js',base+'/app.wxss'],{allowEmpty:true,cwd})
+            .pipe($.if(env==='dev',$.watch([base+'/**/*','!/'+base+'/*.json',],{cwd},function(event){
                 // console.log('处理'+event.path)
                 writeLastLine('处理'+event.relative+'......')
             })))
@@ -391,7 +417,7 @@
                 }
             }))
             .pipe(filterVendor)
-            .pipe($.replace(/^/,'let App=function(){};',{
+            .pipe($.replace(/^/,`if(!wx.__uniapp2wxpack)wx.__uniapp2wxpack={};let packObject=wx.__uniapp2wxpack.${projectToSubPackageConfig.subPackagePath}={};let App=function(packInit){packObject.__packInit=packInit};`,{
                 skipBinary:false
             }))
             .pipe(filterVendor.restore)
@@ -405,7 +431,7 @@
                     return match
                 }
                 let packagePath=getLevelPath(getLevel(this.file.relative))
-                return `require('${packagePath}common/runtime.js');\nrequire('${packagePath}common/vendor.js');\nrequire('${packagePath}common/main.js');\n`
+                return `require('${packagePath}app.js');\n`
             },{
                 skipBinary:false
             }))
@@ -427,11 +453,12 @@
             }))
             .pipe(filterJson.restore)
             .pipe(filterWxss)
-            .pipe($.replace(/(}|^|\s)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
+            .pipe(strip.text())
+            .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
                 let str=''
                 let pathLevel=getLevel(this.file.relative)
-                ;(p2+';').replace(/\s*import\s*:\s*([^\s]*;)/g,function(match,p1){
-                    str+=`@import ${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
+                ;(p2+';').replace(/\s*import\s*:\s*(('[^\s']*')|("[^\s']*"))/g,function(match,p1){
+                    str+=`@import ${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))};\n`
                 })
                 return p1+str
             },{
@@ -439,12 +466,9 @@
             }))
             .pipe($.replace(/^[\s\S]*$/,function(match){
                 let pathLevel=getLevel(this.file.relative)
-                let mainWxss=`@import ${'"@wxResource/common/main.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
+                let mainWxss=`@import ${'"@wxResource/app.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
                 let result=`\n${match}`
-                if(!this.file.relative.match(/^common[\\/]+main.wxss/i)){
-                    result=mainWxss+result
-                }
-                return result
+                return mainWxss+result
             },{
                 skipBinary:false
             }))
@@ -454,15 +478,43 @@
 
     gulp.task('subMode:copyWxResource',function(){
         let filterJs=$.filter(['src/wxresource/**/*.js'],{restore:true})
+        let filterWxss=$.filter(['src/wxresource/**/*.wxss'],{restore:true})
         return gulp.src(['src/wxresource/**','src/wxresource'],{allowEmpty: true,cwd})
-            .pipe($.if(env === 'dev',$.watch(['src/wxresource/**','src/wxresource','!src/wxresource/**/*.*___jb_tmp___'],{cwd},function(event){
+            .pipe($.if(env === 'dev',$.watch(['src/wxresource/**','src/wxresource','!/src/wxresource/**/*.*___jb_tmp___'],{cwd},function(event){
                 // console.log('处理'+event.path)
                 writeLastLine('处理'+event.relative+'......')
             })))
             .pipe(filterJs)
+            .pipe($.replace(/^/,function(match){
+                let packagePath=getLevelPath(getLevel(this.file.relative))
+                return `require('${packagePath}app.js');\n`
+            },{
+                skipBinary:false
+            }))
             .pipe(strip())
             .pipe(uniRequireWxResource())
             .pipe(filterJs.restore)
+            .pipe(filterWxss)
+            .pipe(strip.text())
+            .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
+                let str=''
+                let pathLevel=getLevel(this.file.relative)
+                ;(p2+';').replace(/\s*import\s*:\s*(('[^\s']*')|("[^\s']*"))/g,function(match,p1){
+                    str+=`@import ${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))};\n`
+                })
+                return p1+str
+            },{
+                skipBinary:false
+            }))
+            .pipe($.replace(/^[\s\S]*$/,function(match){
+                let pathLevel=getLevel(this.file.relative)
+                let mainWxss=`@import ${'"@wxResource/app.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
+                let result=`\n${match}`
+                return mainWxss+result
+            },{
+                skipBinary:false
+            }))
+            .pipe(filterWxss.restore)
             .pipe($.filter(async function(file){
                 if(file.event === 'unlink'){
                     try{

@@ -2,10 +2,5 @@
   "scripts": {
     "build:mp-weixin-pack": "cross-env NODE_ENV=production npm run build:mp-weixin && cross-env NODE_ENV=production uniapp2wxpack --build production",
     "dev:mp-weixin-pack": "concurrently \"npm run dev:mp-weixin\" \"cross-env NODE_ENV=development uniapp2wxpack --build development\""
-  },
-  "dependencies": {
-    "concurrently": "^4.1.2",
-    "cross-env": "^5.2.0",
-    "@devilwjp/uniapp2wxpack": "latest"
   }
 }

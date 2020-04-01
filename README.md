@@ -1,11 +1,16 @@
 # uniapp2wxpack  
-## Uni-App的微信小程序解耦构建（分包化）  
+## Uni-App的微信小程序解耦构建，可以使整个uni项目作为一个包输出于其他小程序项目使用，可以自由的引入任何其他小程序的解耦包进行开发联调和构建  
+  
 ### 对uni-app在微信小程序的打包方案进行改造，形成解耦打包，并且支持微信原生页面直接在uni-app项目中使用  
 + 可以使uni-app项目输出微信小程序的分包，被其他小程序项目使用  
+  
 + 支持微信原生页面直接在uni-app项目中使用（还支持任何原生的js、wxss在uni-app项目中使用）  
+  
 + 支持原生小程序项目直接在uni-app项目中进行开发，uni-app项目可以通过全局对象wx，在main.js或者App.vue中将相关的方法公开到wx对象中（因为解耦构建会在主小程序app.js的开头引入uni目录的app.js）  
-**注意：uni自身的App.vue中的生命周期（onLaunch、onShow、onHide、globalData等）将不再有效，App.vue的导出对象将被保存在wx.__uniapp2wxpack.uniSubpackage.__packInit中（uniSubpackage属性是和uni的目录名保持一致的，如果修改目录名，属性名也会变更）**  
+  
 + 支持uni-app项目调用原生小程序项目中的资源   
+  
++ 对uni包的App.vue的特殊处理方式（详见appMode）
 
 ### 安装  
 在uni-app项目中通过cli安装  
@@ -66,6 +71,7 @@ uniapp2wxpack --create
 ### 开发模式  
 + 单独开发解耦包  
 在mainWeixinMp目录放置用于预览的原生小程序项目（hello world小程序即可），然后正常的在src中进行编码开发，解耦包打包完成后的包文件在dist/build/mp-weixin-pack/包名称  
+  
 + 与完整小程序项目协同开发  
 此时mainWeixinMp目录应该是真实的小程序项目（建议关联真实小程序项目的git仓库，mainWeixinMp作为一个git子仓库的存在），构建打包完成后即可将打包后内容(dist/build/mp-weixin-pack)覆盖mainWeixinMp的内容进行子仓库提交    
 
@@ -86,7 +92,9 @@ module.exports={
     // 微信原生小程序目录
     mainWeixinMpPath: 'mainWeixinMp',
     // uni项目输出的分包在微信原生小程序中的路径
-    subPackagePath: 'uniSubpackage'
+    subPackagePath: 'uniSubpackage',
+    // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
+    appMode: 'relegation'
 }
 ````   
 
@@ -94,11 +102,32 @@ module.exports={
 uni-app源码中要使用的原生页面及资源存放的目录  
 wxresource目录中的页面都必须配置在pages.json的wxResource属性里  
 **注意：wxresource目录构建后所在的物理路径，实际上就是src目录所在的路径，也就是uni包目录本身，所以构建后，wxresource中的文件和目录将被移动至uniSubpackage下，如果内容中有目录于src相同，则将会融合，目录名文件名都相同则将被丢弃**  
+  
+### appMode  
+由于uni项目的App.vue对应小程序的app.js，在解耦包的模式中，会对主小程序的app.js产生冲突。  
+所以设置了三种模式对App.vue进行处理，可以在projectToSubPackageConfig.js设置  
+    
++ relegation (降级模式，默认)  
+降级模式的含义是将uni目录从项目级别降级到了目录级别，那么App.vue中的钩子函数就只对目录有效  
+比如：App.vue中的onLaunch，会降级成首次进入uni目录才触发，同样的，onHide会降级成只要离开uni目录的范围就会触发  
+  
++ top (顶级模式)  
+顶级模式的含义就是把uni的App.vue中的钩子和主小程序的app.js的钩子混合在一起  
+**注意：顶级模式需要确保主小程序的app.js中引入了uni项目的app.js(自由项目会自动添加引入，如果是把构建解耦包提供给其他项目，需要其他项目的根目录下的app.js手动引入)**  
+  
++ none (丢弃模式)  
+丢弃模式就是不处理App.vue中的钩子  
+#####  
+降级模式和顶级模式都会将globalData和getApp()返回的内容进行混合  
+所有模式都会将App.vue的初始设置保存在wx.__uniapp2wxpack.uniSubpackage.__packInit中（uniSubpackage属性是和uni的目录名保持一致的，如果修改目录名，属性名也会变更）  
+
+**注意：如果要手动通过wx.__uniapp2wxpack触发App的钩子，需要首先确保触发onLaunch，否则App的onShow和onHide不会有效**  
 
 ### API  
 + wx.__uniapp2wxpack  
 用于存放解耦包相关方法和数据的对象，在引入解耦包的app.js后，通过获取wx.__uniapp2wxpac.uniSubpackage.__packInit，可以拿到uni项目App.vue的初始化配置  
 **注意：其中uniSubpackage属性代表了解耦包的名称，名称变化，该属性也会相应的改变**
+  
 + __uniRequireWx  
 只支持静态字符串参数  
 在uni-app项目的源码目录中的vue、js文件需要引入原生的微信小程序资源（除了uni-app自带的wxcomponents目录外）都需要使用__uniRequireWx方法(类似node的require)，并且往往会配合目录别名@wxResource
@@ -144,7 +173,7 @@ uni.navigateTo({
 + 设置uni项目为分包  
 需要在主小程序的app.json里配置分包的root，并且pages设置为[]  
 构建时会把uni项目中的所有pages和subPackages中的pages都合并到预览目录中app.json的uni分包配置的pages里
-````json
+````javascript
   // mainWeixinMp app.json
   "subPackages":[{
     "root":"uniSubpackage",
@@ -160,7 +189,7 @@ uni.navigateTo({
 #### 场景一  
 在uni项目中的vue页面分包  
 pages.json  
-````json
+````javascript
 {
 	// indexPage配置后，会提升为整个小程序项目的首页
 	"indexPage":"",
@@ -191,7 +220,7 @@ pages.json
 #### 场景二  
 在wxresource中使用分包  
 pages.json
-````json
+````javascript
 {
 	// indexPage配置后，会提升为整个小程序项目的首页
 	"indexPage":"",
@@ -214,7 +243,7 @@ pages.json
 #### 场景三  
 uni项目中vue页面和原生页面，在构建后同时在一个目录里，设置分包  
 虽然设置在了不同的地方，但是构建后会合并到一起
-````json
+````javascript
 {
 	// indexPage配置后，会提升为整个小程序项目的首页
 	"indexPage":"",
@@ -250,7 +279,7 @@ uni项目中vue页面和原生页面，在构建后同时在一个目录里，�
 只需要对app.json进行配置即可，不需要修改pages.json中的subPackages和pages设置，构建后会将pages.json中所有的页面路径都抽取到uniSubpackage分包的配置里  
 mainWeixinMp/app.json中的分包配置  
 **注意：subPackages里的pages设为空数组**  
-````json  
+````javascript  
 {
   "subPackages":[{
     "root":"uniSubpackage",
@@ -261,6 +290,7 @@ mainWeixinMp/app.json中的分包配置
 
 
 ### 路径问题  
-**uni项目中如果使用了绝对路径，在解耦构建的项目中，根路径是指向了主小程序的根的，所以需要自行拼接上uni解耦包的目录名，推荐使用pack.config.js中的packPath动态获取拼接**
+**uni项目中如果使用了绝对路径，在解耦构建的项目中，根路径是指向了主小程序的根的，所以需要自行拼接上uni解耦包的目录名，推荐使用pack.config.js中的packPath动态获取拼接**  
+  
 ### 其他  
 如果原生主小程序目录中已经存在了同uni解耦包命名相同的目录，在构建时，这个目录将被忽略，构建后的项目中的此目录是uni项目生成的解耦包

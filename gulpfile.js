@@ -32,8 +32,6 @@
 
     process.on('unhandledRejection', (reason, p) => {
         return
-        // console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
-        // application specific logging, throwing an error, or other logic here
     });
 
     let env='dev'
@@ -47,16 +45,127 @@
     const subModePath = path.resolve(cwd, target, projectToSubPackageConfig.subPackagePath)
     const targetPath = path.resolve(cwd,target)
     let writeTimer
+
+    // 静态方法，会被通过toString转换成字符串，直接es5
+    function fakeUniBootstrap(vueInit,packPath,appMode){
+        if(!wx.__uniapp2wxpack)wx.__uniapp2wxpack={};
+        var packObject=wx.__uniapp2wxpack[packPath.replace('/','')]={
+            '__packInit':{}
+        };
+        if(vueInit){
+            for(var initProp in vueInit){
+                if(typeof vueInit[initProp] === 'function'){
+                    (function(initProp){
+                        packObject.__packInit[initProp]=function(){
+                            return vueInit[initProp].apply(vueInit, arguments);
+                        }
+                    })(initProp);
+                    continue;
+                }
+                packObject.__packInit[initProp]=vueInit[initProp];
+            }
+        }else{
+            vueInit={}
+        }
+
+        if(appMode==='none'){
+            return
+        }
+        var oldPage = Page, oldComponent = Component;
+        var lastPath='',first=1,topFirst=1;
+        if(typeof vueInit.onError === 'function'){
+            wx.onError(function(){
+                return vueInit.onError.apply(vueInit,arguments)
+            });
+        }
+        if(typeof vueInit.onPageNotFound === 'function'){
+            wx.onPageNotFound(function(){
+                return vueInit.onPageNotFound.apply(vueInit,arguments)
+            })
+        }
+        if(typeof vueInit.onUnhandledRejection === 'function'){
+            wx.onUnhandledRejection(function(){
+                return vueInit.onUnhandledRejection.apply(vueInit,arguments)
+            })
+        }
+
+        wx.onAppRoute(function(options){
+            if(appMode!=='top'){
+                if(('/'+options.path).indexOf(packPath+'/')!==0){
+                    first=1;
+                    vueInit.onHide.call(vueInit, wx.getLaunchOptionsSync())
+                }
+            }
+            lastPath=options.path;
+        })
+        wx.onAppHide(function(){
+            if(appMode==='top'){
+                return vueInit.onHide.call(vueInit, wx.getLaunchOptionsSync())
+            }else{
+                var pages=getCurrentPages()
+                if(('/'+pages[pages.length-1].route).indexOf(packPath+'/')===0){
+                    first=1;
+                    lastPath=''
+                    return vueInit.onHide.call(vueInit, wx.getLaunchOptionsSync())
+                }
+            }
+        })
+
+        wx.onAppShow(function(){
+            if(appMode==='top' && typeof vueInit.onShow === 'function'){
+                vueInit.onShow.call(vueInit, wx.getLaunchOptionsSync());
+            }
+            if(topFirst){
+                if(getApp()){
+                    if(!getApp().globalData){
+                        getApp().globalData={}
+                    }
+                    Object.assign(getApp().globalData,vueInit.globalData || {})
+                }
+            }
+            topFirst=0;
+        })
+
+        if(appMode==='top' && topFirst && typeof vueInit.onLaunch === 'function'){
+            vueInit.onLaunch.call(vueInit, wx.getLaunchOptionsSync());
+        }
+
+        function intercept(params){
+            if(appMode==='top')return
+            var onShow = params.onShow;
+            if(typeof vueInit.onShow === 'function' || typeof vueInit.onLaunch === 'function'){
+                params.onShow = function(){
+                    var pages=getCurrentPages()
+                    if((!lastPath || ('/'+lastPath).indexOf(packPath+'/')!==0) && ('/'+pages[pages.length-1].route).indexOf(packPath+'/')===0){
+                        if(first){
+                            first=0;
+                            vueInit.onLaunch.call(vueInit,wx.getLaunchOptionsSync());
+                        }
+                        vueInit.onShow.call(vueInit,wx.getLaunchOptionsSync());
+                    }
+
+                    if(typeof onShow === 'function'){
+                        return onShow.apply(this,arguments);
+                    }
+                }
+            }
+        }
+        Page = function(params){
+            intercept(params);
+            return oldPage.call(this,params);
+        }
+
+        Component = function(params){
+            intercept(params.methods||{});
+            return oldComponent.call(this,params);
+        }
+    }
+    fakeUniBootstrap.name='fakeUniBootstrap'
+
     function writeLastLine(val) {
         log(val)
-        // readline.clearLine(process.stdout, 0);
-        // readline.cursorTo(process.stdout, 0);
-        // process.stdout.write(val);
         clearTimeout(writeTimer)
         writeTimer=setTimeout(()=>{
-            // readline.clearLine(process.stdout, 0);
-            // readline.cursorTo(process.stdout, 0);
-            // process.stdout.write('解耦构建，正在监听中......(此过程如果出现权限问题，请使用管理员权限运行)');
             log('解耦构建，正在监听中......(此过程如果出现权限问题，请使用管理员权限运行)')
         },300)
     }
@@ -393,8 +502,8 @@
     })
 
 
-    gulp.task('subMode:createUniSubPackage',async function(done){
-        await (fs.mkdirs(basePath))
+    gulp.task('subMode:createUniSubPackage', function(){
+        fs.mkdirsSync(basePath)
         let f=$.filter([base+'/common/vendor.js',base+'/common/main.js',base+'/common/runtime.js',base+'/pages/**/*.js'],{restore:true})
         let filterVendor=$.filter([base+'/common/vendor.js'],{restore:true})
         let filterJs=$.filter([base+'/**/*.js','!'+base+'/app.js','!'+base+'/common/vendor.js','!'+base+'/common/main.js','!'+base+'/common/runtime.js'],{restore:true})
@@ -417,7 +526,15 @@
                 }
             }))
             .pipe(filterVendor)
-            .pipe($.replace(/^/,`if(!wx.__uniapp2wxpack)wx.__uniapp2wxpack={};let packObject=wx.__uniapp2wxpack.${projectToSubPackageConfig.subPackagePath}={};let App=function(packInit){packObject.__packInit=packInit};`,{
+            // .pipe($.replace(/([^;}{,\s=.]+).createApp\s*=\s*([^;}{,\s=.]+)/g,function(match,p1,p2){
+            //     if(p1!=='wx'){
+            //         return `${p1}.createApp=(function(){if(typeof ${p2}==='function'){return function(){if(!__app){__app=arguments[0]}return ${p2}.apply(this,arguments)}}else{return ${p2}}})()`
+            //     }
+            //     return match
+            // },{
+            //     skipBinary:false
+            // }))
+            .pipe($.replace(/^/,`var __packConfig=require('../pack.config.js');var App=function(packInit){${fakeUniBootstrap.toString()};${fakeUniBootstrap.name}(packInit,__packConfig.packPath,__packConfig.appMode);};`,{
                 skipBinary:false
             }))
             .pipe(filterVendor.restore)
@@ -457,7 +574,7 @@
             .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
                 let str=''
                 let pathLevel=getLevel(this.file.relative)
-                ;(p2+';').replace(/\s*import\s*:\s*(('[^\s']*')|("[^\s']*"))/g,function(match,p1){
+                ;(p2+';').replace(/\s*import\s*:\s*(('[^\s';]*')|("[^\s";]*"))/g,function(match,p1){
                     str+=`@import ${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))};\n`
                 })
                 return p1+str
@@ -529,7 +646,15 @@
     })
 
     function buildProcess(){
-        let tasks=['subMode:createUniSubPackage','subMode:copyWxResource','watch:baseAppJson','watch:pagesJson','watch:mainAppJson','watch:mainWeixinMp']
+        let tasks=[async function(done){
+            // 判断主小程序目录有没有app.js
+            let mainAppJsPath = path.resolve(cwd,projectToSubPackageConfig.mainWeixinMpPath,'app.js')
+            if(!(await (fs.exists(mainAppJsPath)))){
+                await (fs.outputFile(mainAppJsPath, 'App({});'))
+            }
+            done()
+        },'subMode:createUniSubPackage', 'subMode:copyWxResource','watch:baseAppJson','watch:pagesJson','watch:mainAppJson','watch:mainWeixinMp'
+        ]
         if(env === 'build'){
             // 同步处理
             return gulp.series.apply(this,tasks)
@@ -546,7 +671,11 @@
 // 创建pack.config.js
         async function f(done){
             try{
-                await fs.outputFile(subModePath+'/pack.config.js', `module.exports={packPath:'/${projectToSubPackageConfig.subPackagePath}'}`)
+                let packConfig = {
+                    packPath: '/'+projectToSubPackageConfig.subPackagePath,
+                    appMode: projectToSubPackageConfig.appMode
+                }
+                await fs.outputFile(subModePath+'/pack.config.js', `module.exports=${JSON.stringify(packConfig,null,4)}`)
             }catch(e){
                 await tryAgain(async ()=>{
                     await f(done)

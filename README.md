@@ -12,8 +12,30 @@
   
 + 对uni包的App.vue的特殊处理方式（详见appMode）
 
+### 快速上手  
+#### 第一步  
+准备一个uni-app项目  
+  
+#### 第二步  
+在项目根目录，安装uniapp2wxpack  
+````  
+npx uniapp2wxpack --create
+````  
+  
+#### 第三步 
+配置根目录下projectToSubPackageConfig.js，可按需要替换主小程序目录中的内容  
+  
+#### 第四步  
+运行开发命令
+````  
+npm run dev:mp-weixin-pack
+````  
+  
+#### 第五步  
+用微信开发者工具预览dist/dev/mp-weixin-pack目录
+  
 ### 安装  
-在uni-app项目中通过cli安装  
+在已有的**uni-app**项目中通过cli安装  
 ````  
 // 推荐  
 npx uniapp2wxpack --create
@@ -113,7 +135,8 @@ wxresource目录中的页面都必须配置在pages.json的wxResource属性里
   
 + top (顶级模式)  
 顶级模式的含义就是把uni的App.vue中的钩子和主小程序的app.js的钩子混合在一起  
-**注意：顶级模式需要确保主小程序的app.js中引入了uni项目的app.js(自由项目会自动添加引入，如果是把构建解耦包提供给其他项目，需要其他项目的根目录下的app.js手动引入)**  
+**注意：顶级模式中uni包不能以分包形式存在，只能以主包的子目录形式存在（否则无法确保onLaunch的准确性），需要确保主小程序的app.js中引入了uni项目的app.js(自有项目会自动添加引入，如果是把构建解耦包提供给其他项目，需要其他项目的根目录下的app.js手动引入)**  
+**如果不需要在根app.js中依赖uni包的方法和属性，可以不引用uni包的app.js，uni包依旧可以准确的触发onLauch和onShow**  
   
 + none (丢弃模式)  
 丢弃模式就是不处理App.vue中的钩子  

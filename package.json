@@ -1,6 +1,6 @@
 {
   "name": "uniapp2wxpack",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
@@ -35,6 +35,7 @@
     "gulp-rename": "^1.4.0",
     "gulp-replace": "^1.0.0",
     "gulp-strip-comments": "^2.5.2",
+    "gulp-strip-css-comments": "^2.0.0",
     "gulp-watch": "^5.0.1",
     "postcss-comment": "^2.0.0",
     "single-line-log": "^1.1.2",

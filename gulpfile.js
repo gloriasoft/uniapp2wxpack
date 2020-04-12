@@ -570,7 +570,7 @@
             }))
             .pipe(filterJson.restore)
             .pipe(filterWxss)
-            .pipe(strip.text())
+            .pipe($.stripCssComments())
             .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
                 let str=''
                 let pathLevel=getLevel(this.file.relative)
@@ -612,7 +612,7 @@
             .pipe(uniRequireWxResource())
             .pipe(filterJs.restore)
             .pipe(filterWxss)
-            .pipe(strip.text())
+            .pipe($.stripCssComments())
             .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
                 let str=''
                 let pathLevel=getLevel(this.file.relative)

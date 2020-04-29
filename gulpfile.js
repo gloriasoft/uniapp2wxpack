@@ -508,6 +508,7 @@
         let filterVendor=$.filter([base+'/common/vendor.js'],{restore:true})
         let filterJs=$.filter([base+'/**/*.js','!'+base+'/app.js','!'+base+'/common/vendor.js','!'+base+'/common/main.js','!'+base+'/common/runtime.js'],{restore:true})
         let filterWxss=$.filter([base+'/**/*.wxss','!'+base+'/app.wxss','!'+base+'/common/main.wxss'],{restore:true})
+        let filterWxssIncludeMain = $.filter([base+'/**/*.wxss','!'+base+'/app.wxss'],{restore:true})
         let filterJson=$.filter([base+'/**/*.json'],{restore:true})
         // let filterWxml=$.filter([base+'/**/*.wxml'],{restore:true})
         return gulp.src([base+'/**','!'+base+'/*.*',base+'/app.js',base+'/app.wxss'],{allowEmpty:true,cwd})
@@ -569,7 +570,7 @@
                 skipBinary:false
             }))
             .pipe(filterJson.restore)
-            .pipe(filterWxss)
+            .pipe(filterWxssIncludeMain)
             .pipe($.stripCssComments())
             .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
                 let str=''
@@ -581,6 +582,9 @@
             },{
                 skipBinary:false
             }))
+            .pipe(filterWxssIncludeMain.restore)
+            .pipe(filterWxss)
+            .pipe($.stripCssComments())
             .pipe($.replace(/^[\s\S]*$/,function(match){
                 let pathLevel=getLevel(this.file.relative)
                 let mainWxss=`@import ${'"@wxResource/app.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`

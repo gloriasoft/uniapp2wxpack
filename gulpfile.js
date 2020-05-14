@@ -197,10 +197,24 @@
         })
     }
 
+    function forceUpdateAppJs () {
+        // 因为要判断是不是把uni作为了分包，要重新刷新app.js
+        const appJsPath = path.resolve(cwd,projectToSubPackageConfig.mainWeixinMpPath+'/app.js')
+        if(fs.existsSync(appJsPath)){
+            const appJs = fs.readFileSync(appJsPath,'utf8')
+            let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
+            let insertJs = `require('${packagePath}app.js');\n`
+            if (packIsSubpackage) insertJs = ''
+            fs.outputFileSync(targetPath + '/app.js', insertJs + appJs)
+        }
+    }
+
     function mergeToTargetJson(type){
         // console.log('处理app.json')
         writeLastLine('处理app.json......')
         return $.replace(/[\s\S]+/,function(match){
+            packIsSubpackage = false
+
             let config, appJson, mainJson, targetJson={}
             let typeMap={
                 pagesJson(){
@@ -292,7 +306,7 @@
                         })
                     }
                     pack.pages=tempAppSubPackgages
-
+                    forceUpdateAppJs()
                     // 删除pages和subPackages之后合并其他的属性
                     delete appJson.pages
                     delete appJson.subPackages
@@ -399,6 +413,8 @@
                     ...appJson.usingComponents
                 }
             }
+
+            forceUpdateAppJs()
             return JSON.stringify(targetJson, null, 2)
         },{
             skipBinary:false
@@ -494,7 +510,7 @@
             }))
             .pipe(filterAppJs)
             .pipe($.replace(/^/,function(match){
-                if (!packIsSubpackage) return ''
+                if (packIsSubpackage) return ''
                 let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
                 return `require('${packagePath}app.js');\n`
             },{

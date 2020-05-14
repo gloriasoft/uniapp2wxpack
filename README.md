@@ -10,7 +10,9 @@
   
 + 支持uni-app项目调用原生小程序项目中的资源   
   
-+ 对uni包的App.vue的特殊处理方式（详见appMode）
++ 对uni包的App.vue的特殊处理方式（详见appMode）  
+  
+### [点击进入项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
 
 ### 快速上手  
 #### 第一步  

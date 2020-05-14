@@ -45,6 +45,7 @@
     const subModePath = path.resolve(cwd, target, projectToSubPackageConfig.subPackagePath)
     const targetPath = path.resolve(cwd,target)
     let writeTimer
+    let packIsSubpackage
 
     // 静态方法，会被通过toString转换成字符串，直接es5
     function fakeUniBootstrap(vueInit,packPath,appMode){
@@ -259,6 +260,7 @@
                     return pack.root === projectToSubPackageConfig.subPackagePath
                 })
                 if(pack){
+                    packIsSubpackage = true
                     // 要将uni项目里所有的pages和subPackages里的pages合并到主小程序uni分布设置的subPackages的pages里
                     let tempAppSubPackgages=[
                         // pages直接使用
@@ -492,6 +494,7 @@
             }))
             .pipe(filterAppJs)
             .pipe($.replace(/^/,function(match){
+                if (!packIsSubpackage) return ''
                 let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
                 return `require('${packagePath}app.js');\n`
             },{

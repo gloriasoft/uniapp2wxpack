@@ -1,6 +1,8 @@
 {
   "scripts": {
     "build:mp-weixin-pack": "cross-env NODE_ENV=production npm run build:mp-weixin && cross-env NODE_ENV=production uniapp2wxpack --build production",
-    "dev:mp-weixin-pack": "concurrently \"npm run dev:mp-weixin\" \"cross-env NODE_ENV=development uniapp2wxpack --build development\""
+    "dev:mp-weixin-pack": "concurrently \"npm run dev:mp-weixin\" \"cross-env NODE_ENV=development uniapp2wxpack --build development\"",
+    "build:mp-weixin-pack-plugin": "cross-env NODE_ENV=production npm run build:mp-weixin && cross-env NODE_ENV=production uniapp2wxpack --build production --plugin",
+    "dev:mp-weixin-pack-plugin": "concurrently \"npm run dev:mp-weixin\" \"cross-env NODE_ENV=development uniapp2wxpack --build development --plugin\""
   }
 }

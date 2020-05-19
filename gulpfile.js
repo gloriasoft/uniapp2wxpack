@@ -26,6 +26,7 @@
     const { program } = require('commander');
     program
         .option('--scope <type>','运行目录',process.cwd())
+        .option('--plugin', '插件模式')
     program.parse(process.argv);
     const cwd = program.scope
     const projectToSubPackageConfig = require(path.resolve(cwd,'./projectToSubPackageConfig'))
@@ -40,7 +41,10 @@
     }
 
     const base='dist/'+env+'/mp-weixin'
-    const target='dist/'+env+'/mp-weixin-pack'
+    let target='dist/'+env+'/mp-weixin-pack'
+    if (program.plugin) {
+        target = 'dist/'+env+'/mp-weixin-pack-plugin'
+    }
     const basePath=path.resolve(cwd,base)
     const subModePath = path.resolve(cwd, target, projectToSubPackageConfig.subPackagePath)
     const targetPath = path.resolve(cwd,target)
@@ -198,13 +202,21 @@
     }
 
     function forceUpdateAppJs () {
+        if (program.plugin) return
+
         // 因为要判断是不是把uni作为了分包，要重新刷新app.js
         const appJsPath = path.resolve(cwd,projectToSubPackageConfig.mainWeixinMpPath+'/app.js')
         if(fs.existsSync(appJsPath)){
             const appJs = fs.readFileSync(appJsPath,'utf8')
             let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
             let insertJs = `require('${packagePath}app.js');\n`
-            if (packIsSubpackage) insertJs = ''
+            // 如果uniSubpackagePath是空或者根
+            if (subModePath === targetPath) {
+                // 获取uni的app.js的内容
+                const uniAppJsContent = fs.readFileSync(basePath + '/app.js', 'utf8')
+                insertJs = `${uniAppJsContent};\n`
+            }
+            if (packIsSubpackage || program.plugin) insertJs = ''
             fs.outputFileSync(targetPath + '/app.js', insertJs + appJs)
         }
     }
@@ -213,6 +225,8 @@
         // console.log('处理app.json')
         writeLastLine('处理app.json......')
         return $.replace(/[\s\S]+/,function(match){
+            if (program.plugin && type === 'mainAppJson') return match
+
             packIsSubpackage = false
 
             let config, appJson, mainJson, targetJson={}
@@ -265,7 +279,7 @@
 
             // 处理subpackage路径拼接
             function addSubPackagePath(pagePath){
-                return projectToSubPackageConfig.subPackagePath+'/'+pagePath
+                return projectToSubPackageConfig.subPackagePath + (projectToSubPackageConfig.subPackagePath ? '/' : '') + pagePath
             }
 
             // 判断主小程序的AppJson中是否把uni项目设为了分包
@@ -288,7 +302,7 @@
                                 ...tempAppSubPackgages,
                                 // 拼接上root
                                 ...(pack.pages||[]).map((page)=>{
-                                    return pack.root+'/'+page
+                                    return pack.root + (pack.root ? '/' : '') + page
                                 })
                             ]
                         })
@@ -300,7 +314,7 @@
                                 ...tempAppSubPackgages,
                                 // 拼接上root
                                 ...(pack.pages||[]).map((page)=>{
-                                    return pack.root+'/'+page
+                                    return pack.root + (pack.root ? '/' : '') + page
                                 })
                             ]
                         })
@@ -457,6 +471,24 @@
         done()
     });
 
+    gulp.task('watch:pluginJson',function(){
+        return gulp.src('src/plugin.json',{allowEmpty:true,cwd})
+            .pipe($.if(env==='dev',$.watch('src/plugin.json',{cwd},function(event){
+                // console.log('处理'+event.path)
+                writeLastLine('处理'+event.relative+'......')
+            })))
+            .pipe(gulp.dest(target + `/${projectToSubPackageConfig.subPackagePath}`, {cwd}))
+    })
+
+    gulp.task('watch:projectConfigJson',function(){
+        return gulp.src('project.config.json',{allowEmpty:true,cwd})
+            .pipe($.if(env==='dev',$.watch('project.config.json',{cwd},function(event){
+                // console.log('处理'+event.path)
+                writeLastLine('处理'+event.relative+'......')
+            })))
+            .pipe(gulp.dest(target, {cwd}))
+    })
+
     gulp.task('watch:pagesJson',function(){
         return gulp.src('src/pages.json',{allowEmpty:true,cwd})
             .pipe($.if(env==='dev',$.watch('src/pages.json',{cwd},function(event){
@@ -465,7 +497,7 @@
             })))
             .pipe(mergeToTargetJson('pagesJson'))
             .pipe($.rename('app.json'))
-            .pipe(gulp.dest(target,{cwd}))
+            .pipe(gulp.dest(target, {cwd}))
     })
 
     gulp.task('watch:baseAppJson',function(){
@@ -475,7 +507,7 @@
                 writeLastLine('处理'+event.relative+'......')
             })))
             .pipe(mergeToTargetJson('baseAppJson'))
-            .pipe(gulp.dest(target,{cwd}))
+            .pipe(gulp.dest(target, {cwd}))
     })
 
     gulp.task('watch:mainAppJson',function(){
@@ -486,7 +518,67 @@
                 writeLastLine('处理'+event.relative+'......')
             })))
             .pipe(mergeToTargetJson('mainAppJson'))
-            .pipe(gulp.dest(target,{cwd}))
+            .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
+    })
+
+    gulp.task('watch:topMode-mainAppJsAndAppWxss',function(){
+        let base=projectToSubPackageConfig.mainWeixinMpPath
+        const filterAppWxss = $.filter([base+'/app.wxss'],{restore:true})
+        const filterAppJs = $.filter([base+'/app.js'],{restore:true})
+        return gulp.src([base+'/app.js', base+'/app.wxss'],{allowEmpty:true,cwd})
+            .pipe($.if(env==='dev',$.watch([base+'/app.js', base+'/app.wxss'], {cwd}, function(event){
+                // console.log('处理'+event.path)
+                writeLastLine('处理'+event.relative+'......')
+            })))
+            .pipe(filterAppJs)
+            .pipe($.replace(/^/,function(match){
+                const uniAppJsContent = fs.readFileSync(basePath + '/app.js', 'utf8')
+                return `${uniAppJsContent};\n`
+            },{
+                skipBinary:false
+            }))
+            .pipe(filterAppJs.restore)
+            .pipe(filterAppWxss)
+            .pipe($.replace(/^/,function(match){
+                const uniAppWxssContent = fs.readFileSync(basePath + '/app.wxss', 'utf8')
+                return `${uniAppWxssContent}\n`
+            },{
+                skipBinary:false
+            }))
+            .pipe(filterAppWxss.restore)
+            .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
+    })
+
+    function checkMainPackFileCanResolve (file) {
+        const wxResourcePath = 'src/wxresource'
+        const mainPath = projectToSubPackageConfig.mainWeixinMpPath + '/' + projectToSubPackageConfig.subPackagePath
+        // 先判断base里是否有文件
+        if (fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, base)))) return false
+        // 在判断wxresource里是否有文件
+        if (fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, wxResourcePath)))) return false
+        return true
+    }
+    gulp.task('watch:mainWeixinMpPackPath', function () {
+        const base = projectToSubPackageConfig.mainWeixinMpPath
+        const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
+        const packTarget = target + '/' + projectToSubPackageConfig.subPackagePath
+        return gulp.src([basePackPath, basePackPath + '/**/*', '!'+basePackPath+'/pack.config.js'], {allowEmpty: true, cwd})
+            .pipe($.if (env === 'dev', $.watch([basePackPath, basePackPath + '/**/*', '!/'+basePackPath+'/pack.config.js'], {cwd}, function (event) {
+                // console.log('处理'+event.path)
+                writeLastLine('处理' + event.relative + '......')
+            })))
+            .pipe($.filter(function (file) {
+                if (!checkMainPackFileCanResolve(file)) return false
+                if (file.event === 'unlink') {
+                    try {
+                        del.sync([file.path.replace(path.resolve(cwd, base), path.resolve(cwd, target))], {force: true})
+                    } catch (e) { }
+                    return false
+                } else {
+                    return true
+                }
+            }))
+            .pipe(gulp.dest(packTarget, {cwd}))
     })
 
     gulp.task('watch:mainWeixinMp',function(){
@@ -498,10 +590,10 @@
                 // console.log('处理'+event.path)w
                 writeLastLine('处理'+event.relative+'......')
             })))
-            .pipe($.filter(async function(file){
+            .pipe($.filter(function(file){
                 if(file.event === 'unlink'){
                     try{
-                        await del([file.path.replace(path.resolve(cwd,base),path.resolve(cwd,target))],{force:true})
+                        del.sync([file.path.replace(path.resolve(cwd,base),path.resolve(cwd,target))],{force:true})
                     }catch(e){}
                     return false
                 }else{
@@ -510,21 +602,37 @@
             }))
             .pipe(filterAppJs)
             .pipe($.replace(/^/,function(match){
-                if (packIsSubpackage) return ''
+                if (packIsSubpackage || program.plugin) return ''
                 let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
+
+                // 如果uniSubpackagePath是空或者根
+                if (subModePath === targetPath) {
+                    // 获取uni的app.js的内容
+                    const uniAppJsContent = fs.readFileSync(basePath + '/app.js', 'utf8')
+                    return `${uniAppJsContent};\n`
+                }
+
                 return `require('${packagePath}app.js');\n`
             },{
                 skipBinary:false
             }))
             .pipe(filterAppJs.restore)
-            .pipe(gulp.dest(target,{cwd}));
+            .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''),{cwd}));
     })
 
+    // 如果uni的app.js和原生的app.js是同一个路径
+    function checkBaseAppJsIsTopAppJs (file) {
+        const topAppJsPath = path.resolve(targetPath, 'app.js')
+        const topAppWxssPath = path.resolve(targetPath, 'app.wxss')
+        const currentFilePath = file.path.replace(basePath, subModePath)
+        return topAppJsPath === currentFilePath || topAppWxssPath === currentFilePath
+    }
 
     gulp.task('subMode:createUniSubPackage', function(){
         fs.mkdirsSync(basePath)
         let f=$.filter([base+'/common/vendor.js',base+'/common/main.js',base+'/common/runtime.js',base+'/pages/**/*.js'],{restore:true})
         let filterVendor=$.filter([base+'/common/vendor.js'],{restore:true})
+        let filterMain=$.filter([base+'/common/main.js'],{restore:true})
         let filterJs=$.filter([base+'/**/*.js','!'+base+'/app.js','!'+base+'/common/vendor.js','!'+base+'/common/main.js','!'+base+'/common/runtime.js'],{restore:true})
         let filterWxss=$.filter([base+'/**/*.wxss','!'+base+'/app.wxss','!'+base+'/common/main.wxss'],{restore:true})
         let filterWxssIncludeMain = $.filter([base+'/**/*.wxss','!'+base+'/app.wxss'],{restore:true})
@@ -535,10 +643,11 @@
                 // console.log('处理'+event.path)
                 writeLastLine('处理'+event.relative+'......')
             })))
-            .pipe($.filter(async function(file){
+            .pipe($.filter(function(file){
+                if (checkBaseAppJsIsTopAppJs(file)) return false
                 if(file.event === 'unlink'){
                     try{
-                        await del([file.path.replace(basePath,path.resolve(cwd,subModePath))],{force:true})
+                        del.sync([file.path.replace(basePath,path.resolve(cwd,subModePath))],{force:true})
                     }catch(e){}
                     return false
                 }else{
@@ -554,7 +663,13 @@
             // },{
             //     skipBinary:false
             // }))
-            .pipe($.replace(/^/,`var __packConfig=require('../pack.config.js');var App=function(packInit){${fakeUniBootstrap.toString()};${fakeUniBootstrap.name}(packInit,__packConfig.packPath,__packConfig.appMode);};`,{
+            .pipe($.replace(/^/, function (match) {
+                if (program.plugin) {
+                    return `var App=function(packInit){};wx.canIUse=function(){return false};`
+                } else {
+                    return `var __packConfig=require('../pack.config.js');var App=function(packInit){${fakeUniBootstrap.toString()};${fakeUniBootstrap.name}(packInit,__packConfig.packPath,__packConfig.appMode);};`
+                }
+            },{
                 skipBinary:false
             }))
             .pipe(filterVendor.restore)
@@ -562,12 +677,25 @@
             .pipe(strip())
             .pipe(uniRequireWxResource())
             .pipe(f.restore)
+            .pipe(filterMain)
+            .pipe($.replace(/^/,function(match){
+                return `var __uniPluginExports={};\n`
+            },{
+                skipBinary:false
+            }))
+            .pipe($.replace(/$/,function(match){
+                return `\nmodule.exports=__uniPluginExports;`
+            },{
+                skipBinary:false
+            }))
+            .pipe(filterMain.restore)
             .pipe(filterJs)
             .pipe($.replace(/^/,function(match){
                 if(fs.existsSync(path.resolve(cwd,'src',this.file.relative))){
                     return match
                 }
                 let packagePath=getLevelPath(getLevel(this.file.relative))
+
                 return `require('${packagePath}app.js');\n`
             },{
                 skipBinary:false
@@ -605,6 +733,7 @@
             .pipe(filterWxss)
             .pipe($.stripCssComments())
             .pipe($.replace(/^[\s\S]*$/,function(match){
+                if (subModePath === targetPath) return match
                 let pathLevel=getLevel(this.file.relative)
                 let mainWxss=`@import ${'"@wxResource/app.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
                 let result=`\n${match}`
@@ -647,6 +776,7 @@
                 skipBinary:false
             }))
             .pipe($.replace(/^[\s\S]*$/,function(match){
+                if (subModePath === targetPath) return match
                 let pathLevel=getLevel(this.file.relative)
                 let mainWxss=`@import ${'"@wxResource/app.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
                 let result=`\n${match}`
@@ -655,10 +785,10 @@
                 skipBinary:false
             }))
             .pipe(filterWxss.restore)
-            .pipe($.filter(async function(file){
+            .pipe($.filter(function(file){
                 if(file.event === 'unlink'){
                     try{
-                        await del([file.path.replace(path.resolve(cwd,'src/wxresource'),path.resolve(cwd,subModePath))],{force:true})
+                        del.sync([file.path.replace(path.resolve(cwd,'src/wxresource'),path.resolve(cwd,subModePath))],{force:true})
                     }catch(e){}
                     return false
                 }else{
@@ -676,7 +806,21 @@
                 await (fs.outputFile(mainAppJsPath, 'App({});'))
             }
             done()
-        },'subMode:createUniSubPackage', 'subMode:copyWxResource','watch:baseAppJson','watch:pagesJson','watch:mainAppJson','watch:mainWeixinMp'
+        },'subMode:createUniSubPackage', 'subMode:copyWxResource',
+            ...(program.plugin ?
+                ['watch:pluginJson'] :
+                ['watch:baseAppJson', 'watch:pagesJson',
+                    ...(projectToSubPackageConfig.mergePack ?
+                        ['watch:mainWeixinMpPackPath'] :
+                        []
+                    ),
+                    ...(subModePath === targetPath ?
+                        ['watch:topMode-mainAppJsAndAppWxss'] :
+                        []
+                    )
+                ]
+            ),
+            'watch:mainAppJson','watch:mainWeixinMp', 'watch:projectConfigJson'
         ]
         if(env === 'build'){
             // 同步处理
@@ -693,9 +837,13 @@
         },'clean:previewDist',
 // 创建pack.config.js
         async function f(done){
+            if (program.plugin) {
+                done()
+                return
+            }
             try{
                 let packConfig = {
-                    packPath: '/'+projectToSubPackageConfig.subPackagePath,
+                    packPath: (projectToSubPackageConfig.subPackagePath ? '/' : '') + projectToSubPackageConfig.subPackagePath,
                     appMode: projectToSubPackageConfig.appMode
                 }
                 await fs.outputFile(subModePath+'/pack.config.js', `module.exports=${JSON.stringify(packConfig,null,4)}`)

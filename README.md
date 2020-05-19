@@ -12,7 +12,11 @@
   
 + 对uni包的App.vue的特殊处理方式（详见appMode）  
   
-### [点击进入项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
++ 支持微信小程序插件的开发模式（[详见小程序插件项目示例](https://github.com/devilwjp/uni-project-to-plugin)）  
+  
++ 支持极端方式的原生小程序迁移到uni-app方式（原生项目与uni项目全目录混合，见极端方式的原生小程序迁移到uni-app说明）
+  
+### [点击进入解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
 
 ### 快速上手  
 #### 第一步  
@@ -48,7 +52,7 @@ uniapp2wxpack --create
 ````  
 + 会在项目中创建projectToSubPackageConfig.js  
 + 创建mainWeixinMp目录（可根据projectToSubPackageConfig.js的配置修改目录名）  
-+ 在package.json中会生成dev:mp-weixin-pack和build:mp-weixin-pack的命令  
++ 在package.json中会生成dev:mp-weixin-pack和build:mp-weixin-pack的命令(3.0以后还会生成用于插件开发的命令)  
 
 ### 概念 
 + uni-app项目目录   
@@ -118,7 +122,9 @@ module.exports={
     // uni项目输出的分包在微信原生小程序中的路径
     subPackagePath: 'uniSubpackage',
     // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
-    appMode: 'relegation'
+    appMode: 'relegation',
+    // 如果微信原生小程序目录中的目录名称合uni项目输出的目录名相同，是否融合处理，默认不融合处理，直接忽略原生小程序里的目录，merge以uni项目优先
+    mergePack: false
 }
 ````   
 
@@ -312,7 +318,26 @@ mainWeixinMp/app.json中的分包配置
   }]
 }
 ````
-
+### 极端方式的原生小程序项目迁移到uni-app项目  
+将完整的微信原生小程序项目，保证目录结构不变的情况下迁移到uni-app中，使uni-app的目录结构与原生项目的目录结构保持一致（不单独区分uniSubpackage目录）  
+规则：  
+1. 当原生文件路径与uni打包后的文件路径冲突时，以uni打包后的文件为优先  
+2. 根目录的app.js和app.wxss以原生项目的文件路径为优先，并且会做特殊的混合处理，将uni打包后的app.js和app.wxss与原生的文件混合  
+#### 配置极端方式迁移  
+仅需要配置projectToSubPackageConfig.js即可，并且项目中的pack.config.js的packPath属性也会自动变成空字符  
+```javascript
+module.exports={
+    // 微信原生小程序目录
+    mainWeixinMpPath: 'mainWeixinMp',
+    // uni项目输出的分包在微信原生小程序中的路径
+    subPackagePath: '',
+    // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
+    appMode: 'top',
+    // 如果微信原生小程序目录中的目录名称合uni项目输出的目录名相同，是否融合处理，默认不融合处理，直接忽略原生小程序里的目录，merge以uni项目优先
+    mergePack: true
+}
+```
+这样原生小程序就完整的迁移成了uni-app项目  
 
 ### 路径问题  
 **uni项目中如果使用了绝对路径，在解耦构建的项目中，根路径是指向了主小程序的根的，所以需要自行拼接上uni解耦包的目录名，推荐使用pack.config.js中的packPath动态获取拼接**  

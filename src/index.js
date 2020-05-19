@@ -7,6 +7,7 @@
     program
         .option('--create', '创建模板')
         .option('--build <type>', 'build')
+        .option('--plugin', '插件模式')
 
     program.parse(process.argv);
 
@@ -40,7 +41,7 @@
     }
     if(commandType[program.build]){
         const readline = require('readline');
-        const workerProcess = spawn(process.execPath,[require.resolve('gulp/bin/gulp.js'),commandType[program.build],'--scope', process.cwd()],{
+        const workerProcess = spawn(process.execPath,[require.resolve('gulp/bin/gulp.js'),commandType[program.build],'--scope', process.cwd(), ...(program.plugin ? ['--plugin'] : [])],{
             cwd:__dirname,
             stdio: 'inherit'
         });

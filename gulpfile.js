@@ -30,6 +30,14 @@
     program.parse(process.argv);
     const cwd = program.scope
     const projectToSubPackageConfig = require(path.resolve(cwd,'./projectToSubPackageConfig'))
+    const wxResourcePath = projectToSubPackageConfig.wxResourcePath || 'src/wxresource'
+    const wxResourceAlias = projectToSubPackageConfig.wxResourceAlias || '@wxResource'
+    const regExpWxResources = new RegExp(`${wxResourceAlias}\\/`,'g')
+    const uniRequireApiName = projectToSubPackageConfig.uniRequireApiName || '__uniRequireWx'
+    const regExpUniRequire = new RegExp(`${uniRequireApiName}\\(([a-zA-Z.\\/"'@\\d]+)\\)`,'g')
+    const uniImportWxssApiName = projectToSubPackageConfig.uniImportWxssApiName || '__uniWxss'
+    const regExpUniImportWxss = new RegExp(`(}|^|\\s|;)${uniImportWxssApiName}\\s*{([^{}]+)}`,'g')
+    const configWxResourceKey = projectToSubPackageConfig.configWxResourceKey || 'wxResource'
 
     process.on('unhandledRejection', (reason, p) => {
         return
@@ -192,10 +200,10 @@
     }
 
     function uniRequireWxResource(){
-        return $.replace(/__uniRequireWx\(([a-zA-Z.\/"'@\d]+)\)/g,function(match, p1, offset, string){
+        return $.replace(regExpUniRequire,function(match, p1, offset, string){
             let pathLevel=getLevel(this.file.relative)
-            console.log(`\n编译${match}-->require(${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))})`)
-            return `require(${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))})`
+            console.log(`\n编译${match}-->require(${p1.replace(regExpWxResources,getLevelPath(pathLevel))})`)
+            return `require(${p1.replace(regExpWxResources,getLevelPath(pathLevel))})`
         },{
             skipBinary:false
         })
@@ -292,7 +300,7 @@
                     // 要将uni项目里所有的pages和subPackages里的pages合并到主小程序uni分布设置的subPackages的pages里
                     let tempAppSubPackgages=[
                         // pages直接使用
-                        ...config.wxResource && config.wxResource.pages || [],
+                        ...config[configWxResourceKey] && config[configWxResourceKey].pages || [],
                         ...appJson.pages||[]
                     ]
                     // 处理subPackages
@@ -308,8 +316,8 @@
                         })
                     }
                     //处理
-                    if(config.wxResource && config.wxResource.subPackages){
-                        config.wxResource.subPackages.forEach((pack)=>{
+                    if(config[configWxResourceKey] && config[configWxResourceKey].subPackages){
+                        config[configWxResourceKey].subPackages.forEach((pack)=>{
                             tempAppSubPackgages=[
                                 ...tempAppSubPackgages,
                                 // 拼接上root
@@ -343,15 +351,15 @@
                 })
             }
 
-            if(config.wxResource){
-                if(config.wxResource.pages){
-                    config.wxResource.pages.forEach((pagePath, index)=>{
-                        config.wxResource.pages[index]=addSubPackagePath(pagePath)
+            if(config[configWxResourceKey]){
+                if(config[configWxResourceKey].pages){
+                    config[configWxResourceKey].pages.forEach((pagePath, index)=>{
+                        config[configWxResourceKey].pages[index]=addSubPackagePath(pagePath)
                     })
                 }
 
-                if(config.wxResource.subPackages){
-                    config.wxResource.subPackages.forEach((subPackage)=>{
+                if(config[configWxResourceKey].subPackages){
+                    config[configWxResourceKey].subPackages.forEach((subPackage)=>{
                         subPackage.root=addSubPackagePath(subPackage.root)
                     })
                 }
@@ -380,7 +388,7 @@
                     ...config.indexPage ? [addSubPackagePath(config.indexPage)] : [],
                     ...mainJson.pages || [],
                     ...appJson.pages || [],
-                    ...config.wxResource && config.wxResource.pages || []
+                    ...config[configWxResourceKey] && config[configWxResourceKey].pages || []
                 ]
             ))
 
@@ -401,7 +409,7 @@
             }
 
             // wxResource和基础输出的app.json中的subPackages进行合并
-            checkValidSubPackages(config.wxResource && config.wxResource.subPackages || [])
+            checkValidSubPackages(config[configWxResourceKey] && config[configWxResourceKey].subPackages || [])
             checkValidSubPackages(appJson.subPackages || [])
             checkValidSubPackages(mainJson.subPackages || [])
 
@@ -550,7 +558,7 @@
     })
 
     function checkMainPackFileCanResolve (file) {
-        const wxResourcePath = 'src/wxresource'
+        const wxResourcePath = wxResourcePath
         const mainPath = projectToSubPackageConfig.mainWeixinMpPath + '/' + projectToSubPackageConfig.subPackagePath
         // 先判断base里是否有文件
         if (fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, base)))) return false
@@ -719,11 +727,11 @@
             .pipe(filterJson.restore)
             .pipe(filterWxssIncludeMain)
             .pipe($.stripCssComments())
-            .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
+            .pipe($.replace(regExpUniImportWxss,function(match,p1,p2){
                 let str=''
                 let pathLevel=getLevel(this.file.relative)
                 ;(p2+';').replace(/\s*import\s*:\s*(('[^\s';]*')|("[^\s";]*"))/g,function(match,p1){
-                    str+=`@import ${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))};\n`
+                    str+=`@import ${p1.replace(regExpWxResources,getLevelPath(pathLevel))};\n`
                 })
                 return p1+str
             },{
@@ -735,7 +743,7 @@
             .pipe($.replace(/^[\s\S]*$/,function(match){
                 if (subModePath === targetPath) return match
                 let pathLevel=getLevel(this.file.relative)
-                let mainWxss=`@import ${'"@wxResource/app.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
+                let mainWxss=`@import ${('"' + wxResourceAlias + '/app.wxss";').replace(regExpWxResources,getLevelPath(pathLevel))}`
                 let result=`\n${match}`
                 return mainWxss+result
             },{
@@ -746,10 +754,10 @@
     })
 
     gulp.task('subMode:copyWxResource',function(){
-        let filterJs=$.filter(['src/wxresource/**/*.js'],{restore:true})
-        let filterWxss=$.filter(['src/wxresource/**/*.wxss'],{restore:true})
-        return gulp.src(['src/wxresource/**','src/wxresource'],{allowEmpty: true,cwd})
-            .pipe($.if(env === 'dev',$.watch(['src/wxresource/**','src/wxresource','!/src/wxresource/**/*.*___jb_tmp___'],{cwd},function(event){
+        let filterJs=$.filter([wxResourcePath + '/**/*.js'],{restore:true})
+        let filterWxss=$.filter([wxResourcePath + '/**/*.wxss'],{restore:true})
+        return gulp.src([wxResourcePath + '/**', wxResourcePath],{allowEmpty: true,cwd})
+            .pipe($.if(env === 'dev',$.watch([wxResourcePath + '/**', wxResourcePath,`!/${wxResourcePath}/**/*.*___jb_tmp___`],{cwd},function(event){
                 // console.log('处理'+event.path)
                 writeLastLine('处理'+event.relative+'......')
             })))
@@ -765,11 +773,11 @@
             .pipe(filterJs.restore)
             .pipe(filterWxss)
             .pipe($.stripCssComments())
-            .pipe($.replace(/(}|^|\s|;)__uniWxss\s*{([^{}]+)}/g,function(match,p1,p2){
+            .pipe($.replace(regExpUniImportWxss,function(match,p1,p2){
                 let str=''
                 let pathLevel=getLevel(this.file.relative)
                 ;(p2+';').replace(/\s*import\s*:\s*(('[^\s']*')|("[^\s']*"))/g,function(match,p1){
-                    str+=`@import ${p1.replace(/@wxResource\//g,getLevelPath(pathLevel))};\n`
+                    str+=`@import ${p1.replace(regExpWxResources,getLevelPath(pathLevel))};\n`
                 })
                 return p1+str
             },{
@@ -778,7 +786,7 @@
             .pipe($.replace(/^[\s\S]*$/,function(match){
                 if (subModePath === targetPath) return match
                 let pathLevel=getLevel(this.file.relative)
-                let mainWxss=`@import ${'"@wxResource/app.wxss";'.replace(/@wxResource\//g,getLevelPath(pathLevel))}`
+                let mainWxss=`@import ${('"' + wxResourceAlias + '/app.wxss";').replace(regExpWxResources,getLevelPath(pathLevel))}`
                 let result=`\n${match}`
                 return mainWxss+result
             },{
@@ -788,7 +796,7 @@
             .pipe($.filter(function(file){
                 if(file.event === 'unlink'){
                     try{
-                        del.sync([file.path.replace(path.resolve(cwd,'src/wxresource'),path.resolve(cwd,subModePath))],{force:true})
+                        del.sync([file.path.replace(path.resolve(cwd, wxResourcePath),path.resolve(cwd,subModePath))],{force:true})
                     }catch(e){}
                     return false
                 }else{

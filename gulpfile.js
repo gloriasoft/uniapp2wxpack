@@ -13,6 +13,7 @@
 *
 * */
 (function(){
+    const parse5 = require('parse5')
     const gulp = require('gulp')
     const del=require('del')
     const $ = require('gulp-load-plugins')()
@@ -636,6 +637,16 @@
         return topAppJsPath === currentFilePath || topAppWxssPath === currentFilePath
     }
 
+    // 深层查找
+    function deepFind (child, callback) {
+        if (!callback) return
+        callback(child)
+        if (!child.childNodes) return
+        child.childNodes.forEach((child) => {
+            deepFind(child, callback)
+        })
+    }
+
     gulp.task('subMode:createUniSubPackage', function(){
         fs.mkdirsSync(basePath)
         let f=$.filter([base+'/common/vendor.js',base+'/common/main.js',base+'/common/runtime.js',base+'/pages/**/*.js'],{restore:true})
@@ -645,6 +656,7 @@
         let filterWxss=$.filter([base+'/**/*.wxss','!'+base+'/app.wxss','!'+base+'/common/main.wxss'],{restore:true})
         let filterWxssIncludeMain = $.filter([base+'/**/*.wxss','!'+base+'/app.wxss'],{restore:true})
         let filterJson=$.filter([base+'/**/*.json'],{restore:true})
+        const filterWxml = $.filter([base + '/**/*.wxml'],{restore:true})
         // let filterWxml=$.filter([base+'/**/*.wxml'],{restore:true})
         return gulp.src([base+'/**','!'+base+'/*.*',base+'/app.js',base+'/app.wxss'],{allowEmpty:true,cwd})
             .pipe($.if(env==='dev',$.watch([base+'/**/*','!/'+base+'/*.json',],{cwd},function(event){
@@ -662,6 +674,32 @@
                     return true
                 }
             }))
+            .pipe(filterWxml)
+            .pipe($.replace(/[\s\S]*/, function (match) {
+                const document = parse5.parse(match)
+                let updated = 0
+                // 直接获取body
+                const body = document.childNodes[0].childNodes[1]
+                deepFind(document, (child) => {
+                    if (child.nodeName === '#text' && child.parentNode.nodeName === 'wxs') {
+                        const valueMatch = child.value.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
+                            const pathLevel=getLevel(this.file.relative)
+                            const resultPath = p1.replace(regExpWxResources,getLevelPath(pathLevel)).replace(/['"]/g, '')
+                            child.parentNode.attrs.push({
+                                name: 'src',
+                                value: resultPath
+                            })
+                            child.parentNode.childNodes = []
+                            updated = 1
+                            console.log(`\n编译${subMatch}-->require(${resultPath})`)
+                        })
+                    }
+                })
+                return updated ? parse5.serialize(body) : match
+            },{
+                skipBinary:false
+            }))
+            .pipe(filterWxml.restore)
             .pipe(filterVendor)
             // .pipe($.replace(/([^;}{,\s=.]+).createApp\s*=\s*([^;}{,\s=.]+)/g,function(match,p1,p2){
             //     if(p1!=='wx'){

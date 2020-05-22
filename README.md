@@ -14,7 +14,9 @@
   
 + 支持微信小程序插件的开发模式（[详见小程序插件项目示例](https://github.com/devilwjp/uni-project-to-plugin)）  
   
-+ 支持极端方式的原生小程序迁移到uni-app方式（原生项目与uni项目全目录混合，见极端方式的原生小程序迁移到uni-app说明）
++ 支持极端方式的原生小程序迁移到uni-app方式（原生项目与uni项目全目录混合，见极端方式的原生小程序迁移到uni-app说明）  
+  
++ 支持在uni的vue文件中引入原生主小程序或者wxresource目录中的wxs（见引入原生资源的wxs部分）  
   
 ### [点击进入解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
 
@@ -338,7 +340,23 @@ module.exports={
 }
 ```
 这样原生小程序就完整的迁移成了uni-app项目  
-
+  
+### 引入原生资源的wxs  
+在uni的vue文件中引入原生资源目录的wxs同样需要使用__uniRequireWx
+```html
+<script module="test" lang="wxs">
+// 跳出uni目录引入跟目录的原生wxs资源
+__uniRequireWx('@wxResource/../static/test.wxs')
+</script>
+```  
+或者  
+```html
+<wxs module="test">
+// 跳出uni目录引入跟目录的原生wxs资源
+__uniRequireWx('@wxResource/../static/test.wxs')
+</wxs>
+```  
+  
 ### 路径问题  
 **uni项目中如果使用了绝对路径，在解耦构建的项目中，根路径是指向了主小程序的根的，所以需要自行拼接上uni解耦包的目录名，推荐使用pack.config.js中的packPath动态获取拼接**  
   

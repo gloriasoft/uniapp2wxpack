@@ -681,6 +681,11 @@
                 // 直接获取body
                 const body = document.childNodes[0].childNodes[1]
                 deepFind(document, (child) => {
+                    // 修正img标签
+                    if (child.nodeName === 'img') {
+                        child.nodeName = 'image'
+                        child.tagName = 'image'
+                    }
                     if (child.nodeName === '#text' && child.parentNode.nodeName === 'wxs') {
                         const valueMatch = child.value.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
                             const pathLevel=getLevel(this.file.relative)

@@ -12,22 +12,39 @@
 * 4.支持uni-app项目调用原生小程序项目中的资源
 *
 * */
+
+// 忽略异步错误
 process.on('unhandledRejection', () => {
     return
 });
 
+// 删除uni的原始dist/mp-weixin目录下所有文件
 require('./tasks/clean_base')
+// 删除dist/mp-weixin-pack下的解耦包目录所有文件
 require('./tasks/clean_subModePath')
+// 删除dist/mp-weixin-pack
 require('./tasks/clean_previewDist')
+// 监听pluginJson
 require('./tasks/watch_pluginJson')
+// 监听project.config.json
 require('./tasks/watch_projectConfigJson')
+// 监听pages.json
 require('./tasks/watch_pagesJson')
+// 监听dist/mp-weixin/app.json
 require('./tasks/watch_baseAppJson')
+// 监听主原生小程序的app.json
 require('./tasks/watch_mainAppJson')
+// 极端混合模式下的特殊监听处理
 require('./tasks/watch_topMode-mainAppJsAndAppWxss')
+// 监听主原生小程序的同解耦包目录名相同的目录
 require('./tasks/watch_mainWeixinMpPackPath')
+// 监听主原生小程序
 require('./tasks/watch_mainWeixinMp')
+// 解耦构建
 require('./tasks/subMode_createUniSubPackage')
+// 解耦构建处理wxresource目录
 require('./tasks/subMode_copyWxResource')
+// 主调度任务
 require('./tasks/mpWxSubMode')
+// 开发启动任务
 require('./tasks/startToPackServe')

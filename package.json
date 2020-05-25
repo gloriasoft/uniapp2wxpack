@@ -5,7 +5,8 @@
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "terser src/index.js -o dist/index.js -m -c toplevel && terser gulpfile.js -o dist/gulpfile.js -m -c toplevel"
+    "build_old": "terser src/index.js -o dist/index.js -m -c toplevel && terser gulpfile.js -o dist/gulpfile.js -m -c toplevel",
+    "build": "node customBuild && terser src/index.js -o dist/index.js -m -c toplevel && cross-env BABEL_ENV=rollup rollup -c"
   },
   "bin": {
     "uniapp2wxpack": "./dist/index.js"
@@ -41,5 +42,26 @@
     "postcss-comment": "^2.0.0",
     "single-line-log": "^1.1.2",
     "strip-json-comments": "^3.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.7.4",
+    "@babel/plugin-external-helpers": "^7.7.4",
+    "@babel/plugin-proposal-class-properties": "^7.7.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.7.4",
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "@babel/preset-env": "^7.7.4",
+    "@rollup/plugin-commonjs": "^12.0.0",
+    "@rollup/plugin-json": "^4.0.3",
+    "@rollup/plugin-node-resolve": "^8.0.0",
+    "babel-preset-latest": "^6.24.1",
+    "cross-env": "^6.0.3",
+    "rollup": "^2.10.8",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.3.0",
+    "rollup-plugin-uglify": "^6.0.3",
+    "terser": "^4.7.0"
   }
 }

@@ -2,10 +2,10 @@ const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
 const del = require('del')
 const path = require('path')
-const {cwd, target, env, projectToSubPackageConfig, base} = require('../preset')
+const fs = require('fs-extra')
+const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath} = require('../preset')
 const {writeLastLine} = require('../utils')
 function checkMainPackFileCanResolve (file) {
-    const wxResourcePath = wxResourcePath
     const mainPath = projectToSubPackageConfig.mainWeixinMpPath + '/' + projectToSubPackageConfig.subPackagePath
     // 先判断base里是否有文件
     if (fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, base)))) return false

@@ -104,8 +104,8 @@ gulp.task('subMode:createUniSubPackage', function(){
                 }
                 if (child.nodeName === '#text' && child.parentNode.nodeName === 'wxs') {
                     const valueMatch = child.value.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
-                        const pathLevel=getLevel(this.file.relative)
-                        const resultPath = p1.replace(regExpWxResources,getLevelPath(pathLevel)).replace(/['"]/g, '')
+                        const pathLevel = getLevel(this.file.relative)
+                        const resultPath = p1.replace(regExpWxResources, getLevelPath(pathLevel)).replace(/['"]/g, '')
                         child.parentNode.attrs.push({
                             name: 'src',
                             value: resultPath
@@ -181,7 +181,8 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe($.replace(regExpUniImportWxss, function (match, p1, p2) {
             let str = ''
             let pathLevel = getLevel(this.file.relative)
-            ;(p2 + ';').replace(/\s*import\s*:\s*(('[^\s';]*')|("[^\s";]*"))/g, function (match, p1) {
+            p2 = p2 + ';'
+            p2.replace(/\s*import\s*:\s*(('[^\s';]*')|("[^\s";]*"))/g, function (match, p1) {
                 str += `@import ${p1.replace(regExpWxResources,getLevelPath(pathLevel))};\n`
             })
             return p1 + str

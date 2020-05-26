@@ -2,6 +2,7 @@ const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
 const {cwd, target, env, projectToSubPackageConfig, program, basePath} = require('../preset')
 const {writeLastLine} = require('../utils')
+const fs = require('fs-extra')
 gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
     let base = projectToSubPackageConfig.mainWeixinMpPath
     const filterAppWxss = $.filter([base + '/app.wxss'], {restore: true})

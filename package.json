@@ -1,11 +1,10 @@
 {
   "name": "uniapp2wxpack",
-  "version": "3.0.7",
+  "version": "3.0.8",
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build_old": "terser src/index.js -o dist/index.js -m -c toplevel && terser gulpfile.js -o dist/gulpfile.js -m -c toplevel",
     "build": "node customBuild && terser src/index.js -o dist/index.js -m -c toplevel && cross-env BABEL_ENV=rollup rollup -c"
   },
   "bin": {

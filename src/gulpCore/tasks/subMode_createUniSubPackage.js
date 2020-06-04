@@ -42,12 +42,7 @@ function deepFind (child, callback) {
 
 gulp.task('subMode:createUniSubPackage', function(){
     fs.mkdirsSync(basePath)
-    const f = $.filter([
-        base + '/common/vendor.js',
-        base + '/common/main.js',
-        base + '/common/runtime.js',
-        base + '/pages/**/*.js'
-    ], {restore: true})
+    const filterAllJs = $.filter(base + '/**/*.js', {restore: true})
     const filterVendor = $.filter([base + '/common/vendor.js'], {restore: true})
     const filterMain = $.filter([base + '/common/main.js'], {restore: true})
     const filterJs = $.filter([
@@ -132,10 +127,10 @@ gulp.task('subMode:createUniSubPackage', function(){
             skipBinary: false
         }))
         .pipe(filterVendor.restore)
-        .pipe(f)
+        .pipe(filterAllJs)
         .pipe(strip())
         .pipe(uniRequireWxResource())
-        .pipe(f.restore)
+        .pipe(filterAllJs.restore)
         .pipe(filterMain)
         .pipe($.replace(/^/, function (match) {
             return `var __uniPluginExports={};\n`

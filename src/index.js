@@ -8,7 +8,7 @@
         .option('--create', '创建模板')
         .option('--build <type>', 'build')
         .option('--plugin', '插件模式')
-        .option('--type <type>', 'set type', 'weixin')
+        .option('--type <type>', '解耦包类型(哪种小程序)', 'weixin')
 
     program.parse(process.argv);
 
@@ -41,8 +41,8 @@
         production: 'mpWxSubMode'
     }
     if (commandType[program.build]) {
-        const readline = require('readline');
-        const workerProcess = spawn(process.execPath, [require.resolve('gulp/bin/gulp.js'), commandType[program.build], '--scope', process.cwd(), ...(program.plugin ? ['--plugin'] : []), '--type', program.type], {
+        // const readline = require('readline');
+        spawn(process.execPath, [require.resolve('gulp/bin/gulp.js'), commandType[program.build], '--scope', process.cwd(), ...(program.plugin ? ['--plugin'] : []), '--type', program.type], {
             cwd: __dirname,
             stdio: 'inherit'
         });

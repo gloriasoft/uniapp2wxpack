@@ -3,7 +3,27 @@ const { program } = require('commander');
 program
     .option('--scope <type>', '运行目录', process.cwd())
     .option('--plugin', '插件模式')
+    .option('--type <type>', '解耦包类型(哪种小程序)', 'weixin')
 program.parse(process.argv);
+const mpTypeNamespace = {
+    weixin: {
+        html: 'wxml',
+        css: 'wxss',
+        globalObject: 'wx'
+    },
+    baidu: {
+        html: 'swan',
+        css: 'css',
+        globalObject: 'swan'
+    },
+    toutiao: {
+        html: 'ttml',
+        css: 'ttss',
+        globalObject: 'tt'
+    }
+}
+const currentNamespace = mpTypeNamespace[program.type]
+if (!currentNamespace) throw Error('小程序类型错')
 const cwd = program.scope
 const projectToSubPackageConfig = require(path.resolve(cwd,'./projectToSubPackageConfig'))
 const wxResourcePath = projectToSubPackageConfig.wxResourcePath || 'src/wxresource'
@@ -33,6 +53,7 @@ const packIsSubpackage = {
 }
 
 module.exports = {
+    currentNamespace,
     program,
     cwd,
     projectToSubPackageConfig,

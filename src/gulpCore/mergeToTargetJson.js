@@ -8,7 +8,8 @@ const {
     projectToSubPackageConfig,
     configWxResourceKey,
     base,
-    packIsSubpackage
+    packIsSubpackage,
+    currentNamespace
 } = require('./preset')
 const {writeLastLine} = require('./utils')
 const forceUpdateAppJs = require('./forceUpdateAppJs')
@@ -61,7 +62,7 @@ function mergeToTargetJson (type) {
         }
         try {
             if (!mainJson) {
-                mainJson = JSON.parse(fs.readFileSync(path.resolve(cwd, projectToSubPackageConfig.mainWeixinMpPath + '/app.json'), 'utf8'))
+                mainJson = JSON.parse(fs.readFileSync(path.resolve(cwd, projectToSubPackageConfig[currentNamespace.mainMpPath] + '/app.json'), 'utf8'))
             }
         } catch (e) {
             mainJson = {}
@@ -219,6 +220,15 @@ function mergeToTargetJson (type) {
         }
 
         forceUpdateAppJs()
+        // 头条没有分包，将分包处理成pages
+        if (program.type === 'toutiao' && targetJson.subPackages) {
+            targetJson.subPackages.forEach((package) => {
+                package.pages.forEach((page) => {
+                    targetJson.pages.push(package.root + '/' + page)
+                })
+            })
+            delete targetJson.subPackages
+        }
         return JSON.stringify(targetJson, null, 2)
     }, {
         skipBinary:false

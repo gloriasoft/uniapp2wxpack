@@ -17,7 +17,8 @@ const {
     regExpUniRequire,
     regExpWxResources,
     regExpUniImportWxss,
-    wxResourceAlias
+    wxResourceAlias,
+    currentNamespace
 } = require('../preset')
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {uniRequireWxResource} = require('../uniRequire')
@@ -25,7 +26,7 @@ const {uniRequireWxResource} = require('../uniRequire')
 // 如果uni的app.js和原生的app.js是同一个路径
 function checkBaseAppJsIsTopAppJs (file) {
     const topAppJsPath = path.resolve(targetPath, 'app.js')
-    const topAppWxssPath = path.resolve(targetPath, 'app.wxss')
+    const topAppWxssPath = path.resolve(targetPath, `app.${currentNamespace.css}`)
     const currentFilePath = file.path.replace(basePath, subModePath)
     return topAppJsPath === currentFilePath || topAppWxssPath === currentFilePath
 }
@@ -53,22 +54,22 @@ gulp.task('subMode:createUniSubPackage', function(){
         '!' + base + '/common/runtime.js'
     ], {restore: true})
     const filterWxss = $.filter([
-        base + '/**/*.wxss',
-        '!' + base + '/app.wxss',
-        '!' + base + '/common/main.wxss'
+        `${base}/**/*.${currentNamespace.css}`,
+        `!${base}/app.${currentNamespace.css}`,
+        `!${base}/common/main.${currentNamespace.css}`
     ], {restore: true})
     const filterWxssIncludeMain = $.filter([
-        base + '/**/*.wxss',
-        '!' + base + '/app.wxss'
+        `${base}/**/*.${currentNamespace.css}`,
+        `!${base}/app.${currentNamespace.css}`
     ], {restore: true})
     const filterJson = $.filter([base + '/**/*.json'], {restore: true})
-    const filterWxml = $.filter([base + '/**/*.wxml'], {restore: true})
+    const filterWxml = $.filter([`${base}/**/*.${currentNamespace.html}`], {restore: true})
 
     return gulp.src([
         base + '/**',
         '!' + base + '/*.*',
         base + '/app.js',
-        base + '/app.wxss'
+        `${base}/app.${currentNamespace.css}`
     ], {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([base + '/**/*', '!/' + base + '/*.json'],{cwd}, function (event) {
             // console.log('处理'+event.path)
@@ -119,9 +120,9 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe(filterVendor)
         .pipe($.replace(/^/, function (match) {
             if (program.plugin) {
-                return `var App=function(packInit){};wx.canIUse=function(){return false};`
+                return `var App=function(packInit){};${currentNamespace.globalObject}.canIUse=function(){return false};`
             } else {
-                return `var __packConfig=require('../pack.config.js');var App=function(packInit){var ${fakeUniBootstrapName}=${fakeUniBootstrap.toString()};${fakeUniBootstrapName}(packInit,__packConfig.packPath,__packConfig.appMode);};`
+                return `var __packConfig=require('../pack.config.js');var App=function(packInit){var ${fakeUniBootstrapName}=${fakeUniBootstrap.toString().replace(/globalObject/g, currentNamespace.globalObject)};${fakeUniBootstrapName}(packInit,__packConfig.packPath,__packConfig.appMode);};`
             }
         }, {
             skipBinary: false
@@ -190,7 +191,7 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe($.replace(/^[\s\S]*$/, function (match) {
             if (subModePath === targetPath) return match
             let pathLevel = getLevel(this.file.relative)
-            let mainWxss = `@import ${('"' + wxResourceAlias + '/app.wxss";').replace(regExpWxResources,getLevelPath(pathLevel))}`
+            let mainWxss = `@import ${(`"${wxResourceAlias}/app.${currentNamespace.css}";`).replace(regExpWxResources,getLevelPath(pathLevel))}`
             let result = `\n${match}`
             return mainWxss + result
         }, {

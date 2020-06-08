@@ -1,9 +1,9 @@
 // 静态方法，会被通过toString转换成字符串，直接es5
 function fakeUniBootstrap (vueInit, packPath , appMode) {
-    if(!wx.__uniapp2wxpack) {
-        wx.__uniapp2wxpack = {}
+    if(!globalObject.__uniapp2wxpack) {
+        globalObject.__uniapp2wxpack = {}
     }
-    var packObject = wx.__uniapp2wxpack[packPath.replace('/', '')] = {
+    var packObject = globalObject.__uniapp2wxpack[packPath.replace('/', '')] = {
         '__packInit': {}
     };
     if (vueInit) {
@@ -27,47 +27,48 @@ function fakeUniBootstrap (vueInit, packPath , appMode) {
     }
     var oldPage = Page, oldComponent = Component;
     var lastPath='', first = 1, topFirst = 1;
-    if (typeof vueInit.onError === 'function') {
-        wx.onError(function () {
+    if (typeof vueInit.onError === 'function' && globalObject.onError) {
+        globalObject.onError(function () {
             return vueInit.onError.apply(vueInit, arguments)
         });
     }
-    if (typeof vueInit.onPageNotFound === 'function') {
-        wx.onPageNotFound (function () {
+    if (typeof vueInit.onPageNotFound === 'function' && globalObject.onPageNotFound) {
+        globalObject.onPageNotFound (function () {
             return vueInit.onPageNotFound.apply(vueInit, arguments)
         })
     }
-    if (typeof vueInit.onUnhandledRejection === 'function'){
-        wx.onUnhandledRejection(function () {
+    if (typeof vueInit.onUnhandledRejection === 'function' && globalObject.onUnhandledRejection){
+        globalObject.onUnhandledRejection(function () {
             return vueInit.onUnhandledRejection.apply(vueInit, arguments)
         })
     }
 
-    wx.onAppRoute(function (options) {
+    globalObject.onAppRoute(function (options) {
         if (appMode !== 'top') {
             if(('/' + options.path).indexOf(packPath + '/') !== 0){
                 first = 1;
-                vueInit.onHide.call(vueInit, wx.getLaunchOptionsSync())
+                vueInit.onHide.call(vueInit, globalObject.getLaunchOptionsSync())
             }
         }
         lastPath = options.path;
     })
-    wx.onAppHide(function () {
+    globalObject.onAppHide(function () {
         if (appMode === 'top') {
-            return vueInit.onHide.call(vueInit, wx.getLaunchOptionsSync())
+            return vueInit.onHide.call(vueInit, globalObject.getLaunchOptionsSync())
         } else {
             var pages = getCurrentPages()
-            if (('/'+pages[pages.length-1].route).indexOf(packPath+'/') === 0) {
+            var route = pages[pages.length-1].route == null ? pages[pages.length-1].__route__ : pages[pages.length-1].route
+            if (('/' + route).indexOf(packPath+'/') === 0) {
                 first = 1;
                 lastPath = ''
-                return vueInit.onHide.call(vueInit, wx.getLaunchOptionsSync())
+                return vueInit.onHide.call(vueInit, globalObject.getLaunchOptionsSync())
             }
         }
     })
 
-    wx.onAppShow(function () {
+    globalObject.onAppShow(function () {
         if (appMode === 'top' && typeof vueInit.onShow === 'function') {
-            vueInit.onShow.call(vueInit, wx.getLaunchOptionsSync());
+            vueInit.onShow.call(vueInit, globalObject.getLaunchOptionsSync());
         }
         if (topFirst) {
             if (getApp()) {
@@ -81,7 +82,7 @@ function fakeUniBootstrap (vueInit, packPath , appMode) {
     })
 
     if (appMode==='top' && topFirst && typeof vueInit.onLaunch === 'function') {
-        vueInit.onLaunch.call(vueInit, wx.getLaunchOptionsSync());
+        vueInit.onLaunch.call(vueInit, globalObject.getLaunchOptionsSync());
     }
 
     function intercept (params) {
@@ -90,12 +91,13 @@ function fakeUniBootstrap (vueInit, packPath , appMode) {
         if (typeof vueInit.onShow === 'function' || typeof vueInit.onLaunch === 'function') {
             params.onShow = function(){
                 var pages = getCurrentPages()
-                if ((!lastPath || ('/' + lastPath).indexOf(packPath + '/') !== 0) && ('/' + pages[pages.length-1].route).indexOf(packPath + '/') === 0) {
+                var route = pages[pages.length-1].route == null ? pages[pages.length-1].__route__ : pages[pages.length-1].route
+                if ((!lastPath || ('/' + lastPath).indexOf(packPath + '/') !== 0) && ('/' + route).indexOf(packPath + '/') === 0) {
                     if (first) {
                         first = 0;
-                        vueInit.onLaunch.call(vueInit, wx.getLaunchOptionsSync());
+                        vueInit.onLaunch.call(vueInit, globalObject.getLaunchOptionsSync());
                     }
-                    vueInit.onShow.call(vueInit, wx.getLaunchOptionsSync());
+                    vueInit.onShow.call(vueInit, globalObject.getLaunchOptionsSync());
                 }
 
                 if (typeof onShow === 'function') {

@@ -127,6 +127,7 @@ npm run dev:mp-toutiao-pack
 
 // 微信小程序打包
 npm run build:mp-weixin-pack
+// 头条小程序打包
 npm run build:mp-toutiao-pack
 ````  
 

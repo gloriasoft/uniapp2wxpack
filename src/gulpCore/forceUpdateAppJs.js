@@ -7,14 +7,15 @@ const {
     basePath,
     subModePath,
     targetPath,
-    packIsSubpackage
+    packIsSubpackage,
+    currentNamespace
 } = require('./preset')
 
 function forceUpdateAppJs () {
     if (program.plugin) return
 
     // 因为要判断是不是把uni作为了分包，要重新刷新app.js
-    const appJsPath = path.resolve(cwd,projectToSubPackageConfig.mainWeixinMpPath+'/app.js')
+    const appJsPath = path.resolve(cwd,projectToSubPackageConfig[currentNamespace.mainMpPath] +'/app.js')
     if(fs.existsSync(appJsPath)){
         const appJs = fs.readFileSync(appJsPath,'utf8')
         let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`

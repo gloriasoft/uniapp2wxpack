@@ -11,14 +11,15 @@ const {
     regExpWxResources,
     regExpUniImportWxss,
     wxResourceAlias,
-    wxResourcePath
+    wxResourcePath,
+    currentNamespace
 } = require('../preset')
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {uniRequireWxResource} = require('../uniRequire')
 
 gulp.task('subMode:copyWxResource', function () {
     const filterJs = $.filter([wxResourcePath + '/**/*.js'], {restore: true})
-    const filterWxss = $.filter([wxResourcePath + '/**/*.wxss'], {restore: true})
+    const filterWxss = $.filter([`${wxResourcePath}/**/*.${currentNamespace.css}`], {restore: true})
     return gulp.src([wxResourcePath + '/**', wxResourcePath], {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([
             wxResourcePath + '/**',
@@ -53,7 +54,7 @@ gulp.task('subMode:copyWxResource', function () {
         .pipe($.replace(/^[\s\S]*$/, function (match) {
             if (subModePath === targetPath) return match
             let pathLevel = getLevel(this.file.relative)
-            let mainWxss = `@import ${('"' + wxResourceAlias + '/app.wxss";').replace(regExpWxResources,getLevelPath(pathLevel))}`
+            let mainWxss = `@import ${(`"${wxResourceAlias}/app.${currentNamespace.css}";`).replace(regExpWxResources,getLevelPath(pathLevel))}`
             let result = `\n${match}`
             return mainWxss + result
         }, {

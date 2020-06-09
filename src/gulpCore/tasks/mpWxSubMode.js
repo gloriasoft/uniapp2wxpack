@@ -7,13 +7,14 @@ const {
     targetPath,
     subModePath,
     projectToSubPackageConfig,
-    program
+    program,
+    currentNamespace
 } = require('../preset')
 const {tryAgain} = require('../utils')
 function buildProcess(){
     let tasks=[async function (done) {
         // 判断主小程序目录有没有app.js
-        let mainAppJsPath = path.resolve(cwd, projectToSubPackageConfig.mainWeixinMpPath, 'app.js')
+        let mainAppJsPath = path.resolve(cwd, projectToSubPackageConfig[currentNamespace.mainMpPath], 'app.js')
         if (!(await (fs.exists(mainAppJsPath)))) {
             await (fs.outputFile(mainAppJsPath, 'App({});'))
         }

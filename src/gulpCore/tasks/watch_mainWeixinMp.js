@@ -11,19 +11,20 @@ const {
     subModePath,
     targetPath,
     program,
-    packIsSubpackage
+    packIsSubpackage,
+    currentNamespace
 } = require('../preset')
 const {writeLastLine} = require('../utils')
 gulp.task('watch:mainWeixinMp', function () {
-    let base = projectToSubPackageConfig.mainWeixinMpPath
+    let base = projectToSubPackageConfig[currentNamespace.mainMpPath]
     let basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
     let filterAppJs = $.filter([base + '/app.js'], {restore: true})
     return gulp.src([
         base+'/**/*',
         '!'+base+'/app.json',
         '!' + base + '/**/*.json___jb_tmp___',
-        '!' + base + '/**/*.wxml___jb_tmp___',
-        '!' + base + '/**/*.wxss___jb_tmp___',
+        '!' + base + `/**/*.${currentNamespace.html}___jb_tmp___`,
+        '!' + base + `/**/*.${currentNamespace.css}___jb_tmp___`,
         '!' + base + '/**/*.js___jb_tmp___',
         '!' + basePackPath + '/**/*'
     ], {base: path.resolve(cwd, base), allowEmpty: true, cwd})

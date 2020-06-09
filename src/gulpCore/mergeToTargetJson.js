@@ -222,9 +222,9 @@ function mergeToTargetJson (type) {
         forceUpdateAppJs()
         // 头条没有分包，将分包处理成pages
         if (program.type === 'toutiao' && targetJson.subPackages) {
-            targetJson.subPackages.forEach((package) => {
-                package.pages.forEach((page) => {
-                    targetJson.pages.push(package.root + '/' + page)
+            targetJson.subPackages.forEach((pack) => {
+                pack.pages.forEach((page) => {
+                    targetJson.pages.push(pack.root + '/' + page)
                 })
             })
             delete targetJson.subPackages

@@ -1,28 +1,30 @@
 # uniapp2wxpack  
-## Uni-App的微信小程序解耦构建  
-### 可以将uni-app项目输出给任何原生微信小程序项目作为目录、作为分包、甚至做极端的项目混合
-### 可以直接在uni-app项目中引入原生微信小程序项目、页面、模块、任何资源（wxss、js、wxml、json、wxs等），完全不需要修改原生小程序的代码  
-### 可以保持原生微信小程序的目录结构不变，同时开发uni-app文件和原生小程序文件  
-### 可以使uni-app支持原生微信小程序插件的开发
+## Uni-App的小程序解耦构建(支持微信、头条)  
+### 可以将uni-app项目输出给任何原生小程序项目作为目录、作为分包、甚至做极端的项目混合
+### 可以直接在uni-app项目中引入原生小程序项目、页面、模块、任何资源（wxss、js、wxml、json、wxs、ttss、ttml等），完全不需要修改原生小程序的代码  
+### 可以保持原生小程序的目录结构不变，同时开发uni-app文件和原生小程序文件  
+### 可以使uni-app支持原生小程序插件的开发
   
-### 对uni-app在微信小程序的打包方案进行改造，形成解耦打包，并且支持微信原生页面直接在uni-app项目中使用  
-+ 可以使uni-app项目输出微信小程序的分包，被其他小程序项目使用  
+### 对uni-app在小程序的打包方案进行改造，形成解耦打包，并且支持原生页面直接在uni-app项目中使用  
++ 可以使uni-app项目输出小程序的分包，被其他小程序项目使用  
   
-+ 支持微信原生页面直接在uni-app项目中使用（还支持任何原生的js、wxss在uni-app项目中使用）  
++ 支持原生页面直接在uni-app项目中使用（还支持任何原生的js、wxss、ttss在uni-app项目中使用）  
   
-+ 支持原生小程序项目直接在uni-app项目中进行开发，uni-app项目可以通过全局对象wx，在main.js或者App.vue中将相关的方法公开到wx对象中（因为解耦构建会在主小程序app.js的开头引入uni目录的app.js）  
++ 支持原生小程序项目直接在uni-app项目中进行开发，uni-app项目可以通过全局对象wx或tt，在main.js或者App.vue中将相关的方法公开到wx对象中（因为解耦构建会在主小程序app.js的开头引入uni目录的app.js）  
   
 + 支持uni-app项目调用原生小程序项目中的资源   
   
 + 对uni包的App.vue的特殊处理方式（详见appMode）  
   
-+ 支持微信小程序插件的开发模式（[详见小程序插件项目示例](https://github.com/devilwjp/uni-project-to-plugin)）  
++ 支持小程序插件的开发模式（[详见微信小程序插件项目示例](https://github.com/devilwjp/uni-project-to-plugin)）  
   
 + 支持极端方式的原生小程序迁移到uni-app方式（原生项目与uni项目全目录混合，见极端方式的原生小程序迁移到uni-app说明）  
   
 + 支持在uni的vue文件中引入原生主小程序或者wxresource目录中的wxs（见引入原生资源的wxs部分）  
   
-### [点击进入解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
+### [点击进入微信小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
+
+### [点击进入头条小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-ttpack)  
 
 ### 快速上手  
 #### 第一步  
@@ -44,7 +46,7 @@ npm run dev:mp-weixin-pack
 ````  
   
 #### 第五步  
-用微信开发者工具预览dist/dev/mp-weixin-pack目录
+用小程序开发者工具预览dist/dev/mp-weixin-pack目录
   
 ### 安装  
 在已有的**uni-app**项目中通过cli安装  
@@ -58,7 +60,13 @@ uniapp2wxpack --create
 ````  
 + 会在项目中创建projectToSubPackageConfig.js  
 + 创建mainWeixinMp目录（可根据projectToSubPackageConfig.js的配置修改目录名）  
-+ 在package.json中会生成dev:mp-weixin-pack和build:mp-weixin-pack的命令(3.0以后还会生成用于插件开发的命令)  
++ 在package.json中会生成以下命令  
+dev:mp-weixin-pack  
+dev:mp-toutiao-pack  
+build:mp-weixin-pack  
+build:mp-toutiao-pack  
+dev:mp-weixin-pack-plugin  
+build:mp-weixin-pack-plugin  
 
 ### 概念 
 + uni-app项目目录   
@@ -66,7 +74,7 @@ uniapp2wxpack --create
 + 主小程序项目（原生）目录  
     + project/mainWeixinMp   (可进行配置修改)  
 + uni-app项目中的原生小程序页面（或资源）目录  
-    + project/src/wxresource   
+    + project/src/wxresource（头条是ttresource）   
 + uni-app项目打包输出之后在主小程序项目中的目录  
     + uniSubpackage (可进行配置修改)  
 
@@ -112,11 +120,14 @@ uniapp2wxpack --create
 ### 运行  
 可根据实际项目情况修改以下两个命令的内容
 ````
-// 开发
+// 微信小程序开发
 npm run dev:mp-weixin-pack
+// 头条小程序开发
+npm run dev:mp-toutiao-pack
 
-// 打包
+// 微信小程序打包
 npm run build:mp-weixin-pack
+npm run build:mp-toutiao-pack
 ````  
 
 ### projectToSubPackageConfig.js   
@@ -125,16 +136,33 @@ npm run build:mp-weixin-pack
 module.exports={
     // 微信原生小程序目录
     mainWeixinMpPath: 'mainWeixinMp',
-    // uni项目输出的分包在微信原生小程序中的路径
+    // 头条原生小程序目录
+    mainToutiaoMpPath: 'mainToutiaoMp',
+    // uni项目输出的分包在原生小程序中的路径
     subPackagePath: 'uniSubpackage',
     // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
     appMode: 'relegation',
-    // 如果微信原生小程序目录中的目录名称合uni项目输出的目录名相同，是否融合处理，默认不融合处理，直接忽略原生小程序里的目录，merge以uni项目优先
-    mergePack: false
+    // 如果原生小程序目录中的目录名称合uni项目输出的目录名相同，是否融合处理，默认不融合处理，直接忽略原生小程序里的目录，merge以uni项目优先
+    mergePack: false,
+    /**
+     * uni项目中的原生资源目录路径,null代表使用默认值
+     * process.env.PACK_TYPE = weixin 默认值为 'src/wxresource'
+     * process.env.PACK_TYPE = toutiao 默认值为 'src/ttresource'
+     * 也可以自行设定，通过环境变量process.env.PACK_TYPE进行动态设置
+     */
+    wxResourcePath: null,
+    // 原生资源目录路径别名, null代表使用默认值，默认值为 @wxResource (所有类型小程序通用)
+    wxResourceAlias: null,
+    // 引用原生资源的js的特殊API名称设定, null代表使用默认值，默认值为 __uniRequireWx (所有类型小程序通用)
+    uniRequireApiName: null,
+    // 引用原生资源的样式文件的特殊API名称设定, null代表使用默认值，默认值为 __uniWxss (所有类型小程序通用)
+    uniImportWxssApiName: null,
+    // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
+    configWxResourceKey: null
 }
 ````   
 
-### wxresource目录  
+### wxresource目录（头条是ttresource）  
 uni-app源码中要使用的原生页面及资源存放的目录  
 wxresource目录中的页面都必须配置在pages.json的wxResource属性里  
 **注意：wxresource目录构建后所在的物理路径，实际上就是src目录所在的路径，也就是uni包目录本身，所以构建后，wxresource中的文件和目录将被移动至uniSubpackage下，如果内容中有目录于src相同，则将会融合，目录名文件名都相同则将被丢弃**  
@@ -162,10 +190,10 @@ wxresource目录中的页面都必须配置在pages.json的wxResource属性里
 
 ### API  
 + wx.__uniapp2wxpack  
-用于存放解耦包相关方法和数据的对象，在引入解耦包的app.js后，通过获取wx.__uniapp2wxpac.uniSubpackage.__packInit，可以拿到uni项目App.vue的初始化配置  
+用于存放解耦包相关方法和数据的对象，在引入解耦包的app.js后，通过获取wx.__uniapp2wxpack.uniSubpackage.__packInit，可以拿到uni项目App.vue的初始化配置  
 **注意：其中uniSubpackage属性代表了解耦包的名称，名称变化，该属性也会相应的改变**
   
-+ __uniRequireWx  
++ __uniRequireWx (头条小程序也通用)  
 只支持静态字符串参数  
 在uni-app项目的源码目录中的vue、js文件需要引入原生的微信小程序资源（除了uni-app自带的wxcomponents目录外）都需要使用__uniRequireWx方法(类似node的require)，并且往往会配合目录别名@wxResource
 ````javascript
@@ -173,22 +201,28 @@ const nativeResource = __uniRequireWx('@wxResource/nativeJs/test')
 const nativeExportDefaultObject = __uniRequireWx('@wxResource/nativeJs/test1').defaut
 const {nativeRestObject} =  __uniRequireWx('@wxResource/nativeJs/test')
 ````  
-+ __uniWxss  
++ __uniWxss (头条小程序也通用)  
 只支持静态字符串参数  
-在uni-app项目的源码目录中的vue、scss、less文件中引入原生的微信小程序wxss资源(类似@import 'xxxxxx'),往往会配合目录别名@wxResource  
+在uni-app项目的源码目录中的vue、scss、less文件中引入原生的微信小程序wxss、ttss资源(类似@import 'xxxxxx'),往往会配合目录别名@wxResource  
 ````css
 __uniWxss{
     import: '@wxResource/nativeWxss/1.wxss';
     import: '@wxResource/nativeWxss/2.wxss';
     import: '@wxResource/nativeWxss/3.wxss';
 }
+__uniWxss{
+    import: '@wxResource/nativeWxss/1.ttss';
+    import: '@wxResource/nativeWxss/2.ttss';
+    import: '@wxResource/nativeWxss/3.ttss';
+}
+
 ````
-### @wxResource  
+### @wxResource (头条小程序也通用)  
 特殊的目录别名，此别名同时指向2个资源  
 @wxResource只能在__uniRequireWx和__uniWxss中使用  
-+ 指向src/wxresource  
++ 指向src/wxresource(头条是ttresource)  
 + 指向构建后的原生小程序项目中的uni解耦包目录  
-#### 意味着src/wxresource会和uni解耦包融合构建  
+#### 意味着src/wxresource(头条是ttresource)会和uni解耦包融合构建  
 ````javascript  
 // 跳出uni解耦包的目录，访问上层资源
 __uniRequireWx('../@wxResource/top/1.js')
@@ -219,7 +253,7 @@ uni.navigateTo({
 ````  
 + 设置uni项目为主包并配置目录下的一些资源为分包  
 在uni项目的pages.json里设置pages和subPackages  
-+ 在uni项目中设置wxresource中的pages和subPackages  
++ 在uni项目中设置wxresource(头条是ttresource)中的pages和subPackages  
 需要在uni项目中的pages.json中的wxResource中配置pages和subPackages
 
 ### 解耦构建分包配置场景示例  

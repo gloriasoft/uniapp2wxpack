@@ -25,8 +25,14 @@
         console.log('projectToSubPackageConfig植入成功')
         fs.writeJsonSync(path.resolve(targetPath,'package.json'), targetPackageJson,{ spaces: 2 })
         console.log('package.json更新成功')
-        fs.mkdirsSync(path.resolve(targetPath,projectToSubPackageConfig.mainWeixinMpPath))
-        console.log('projectToSubPackageConfig.mainWeixinMpPath创建成功')
+        if (projectToSubPackageConfig.mainWeixinMpPath) {
+            fs.mkdirsSync(path.resolve(targetPath,projectToSubPackageConfig.mainWeixinMpPath))
+            console.log('projectToSubPackageConfig.mainWeixinMpPath创建成功')
+        }
+        if (projectToSubPackageConfig.mainToutiaoMpPath) {
+            fs.mkdirsSync(path.resolve(targetPath,projectToSubPackageConfig.mainToutiaoMpPath))
+            console.log('projectToSubPackageConfig.mainToutiaoMpPath创建成功')
+        }
 
         // 使用同步进程
         const workerProcess = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', 'concurrently', 'cross-env', 'uniapp2wxpack', '-S'],{

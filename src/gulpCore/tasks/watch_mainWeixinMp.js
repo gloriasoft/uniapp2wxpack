@@ -16,6 +16,7 @@ const {
 } = require('../preset')
 const {writeLastLine} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
+const {runPlugins} = require('../plugins')
 gulp.task('watch:mainWeixinMp', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
     const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
@@ -79,5 +80,6 @@ gulp.task('watch:mainWeixinMp', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAllCss.restore)
+        .pipe($.replace(/[\s\S]*/, runPlugins))
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}));
 })

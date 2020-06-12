@@ -6,6 +6,7 @@ const fs = require('fs-extra')
 const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace} = require('../preset')
 const {writeLastLine} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
+const {runPlugins} = require('../plugins')
 function checkMainPackFileCanResolve (file) {
     const mainPath = projectToSubPackageConfig[currentNamespace.mainMpPath] + '/' + projectToSubPackageConfig.subPackagePath
     // 先判断base里是否有文件
@@ -57,5 +58,6 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
             return injectCode + match
         }))
         .pipe(filterAllJs.restore)
+        .pipe($.replace(/[\s\S]*/, runPlugins))
         .pipe(gulp.dest(packTarget, {cwd}))
 })

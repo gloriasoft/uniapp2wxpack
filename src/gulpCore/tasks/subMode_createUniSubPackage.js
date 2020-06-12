@@ -24,6 +24,7 @@ const platform = process.env.PACK_TYPE
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
 const {uniRequireWxResource} = require('../uniRequire')
+const {runPlugins} = require('../plugins')
 
 // 如果uni的app.js和原生的app.js是同一个路径
 function checkBaseAppJsIsTopAppJs (file) {
@@ -206,5 +207,6 @@ gulp.task('subMode:createUniSubPackage', function(){
             skipBinary: false
         }))
         .pipe(filterWxss.restore)
+        .pipe($.replace(/[\s\S]*/, runPlugins))
         .pipe(gulp.dest(subModePath, {cwd}))
 })

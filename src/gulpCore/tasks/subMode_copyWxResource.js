@@ -17,6 +17,7 @@ const {
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
 const {uniRequireWxResource} = require('../uniRequire')
+const {runPlugins} = require('../plugins')
 
 gulp.task('subMode:copyWxResource', function () {
     const filterJs = $.filter([wxResourcePath + '/**/*.js'], {restore: true})
@@ -86,5 +87,6 @@ gulp.task('subMode:copyWxResource', function () {
                 return true
             }
         }))
+        .pipe($.replace(/[\s\S]*/, runPlugins))
         .pipe(gulp.dest(subModePath, {cwd}));
 })

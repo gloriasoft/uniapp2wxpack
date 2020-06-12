@@ -15,10 +15,14 @@ const {
     currentNamespace
 } = require('../preset')
 const {writeLastLine} = require('../utils')
+const {mixinsEnvCode} = require('../mixinAllEnv')
 gulp.task('watch:mainWeixinMp', function () {
-    let base = projectToSubPackageConfig[currentNamespace.mainMpPath]
-    let basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
-    let filterAppJs = $.filter([base + '/app.js'], {restore: true})
+    const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
+    const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
+    const filterAppJs = $.filter([base + '/app.js'], {restore: true})
+    const filterAllJs = $.filter([base + '/**/*.js'], {restore: true})
+    const filterAllHtml = $.filter([base + '/**/*.wxml', base + '/**/*.ttml', base + '/**/*.swan'], {restore: true})
+    const filterAllCss = $.filter([base + '/**/*.wxss', base + '/**/*.ttss', base + '/**/*.css'], {restore: true})
     return gulp.src([
         base+'/**/*',
         '!'+base+'/app.json',
@@ -42,6 +46,12 @@ gulp.task('watch:mainWeixinMp', function () {
                 return true
             }
         }))
+        .pipe(filterAllJs)
+        .pipe($.replace(/[\s\S]*/, function (match) {
+            const injectCode = mixinsEnvCode(match)
+            return injectCode + match
+        }))
+        .pipe(filterAllJs.restore)
         .pipe(filterAppJs)
         .pipe($.replace(/^/, function (match) {
             if (packIsSubpackage.mode || program.plugin) return ''
@@ -59,5 +69,15 @@ gulp.task('watch:mainWeixinMp', function () {
             skipBinary:false
         }))
         .pipe(filterAppJs.restore)
+        .pipe(filterAllHtml)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.html
+        }))
+        .pipe(filterAllHtml.restore)
+        .pipe(filterAllCss)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.css
+        }))
+        .pipe(filterAllCss.restore)
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}));
 })

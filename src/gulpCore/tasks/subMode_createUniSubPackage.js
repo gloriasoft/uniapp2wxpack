@@ -20,7 +20,9 @@ const {
     wxResourceAlias,
     currentNamespace
 } = require('../preset')
+const platform = process.env.PACK_TYPE
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
+const {mixinsEnvCode} = require('../mixinAllEnv')
 const {uniRequireWxResource} = require('../uniRequire')
 
 // 如果uni的app.js和原生的app.js是同一个路径
@@ -64,6 +66,7 @@ gulp.task('subMode:createUniSubPackage', function(){
     ], {restore: true})
     const filterJson = $.filter([base + '/**/*.json'], {restore: true})
     const filterWxml = $.filter([`${base}/**/*.${currentNamespace.html}`], {restore: true})
+
 
     return gulp.src([
         base + '/**',
@@ -122,7 +125,7 @@ gulp.task('subMode:createUniSubPackage', function(){
             if (program.plugin) {
                 return `var App=function(packInit){};${currentNamespace.globalObject}.canIUse=function(){return false};`
             } else {
-                return `var __packConfig=require('../pack.config.js');var App=function(packInit){var ${fakeUniBootstrapName}=${fakeUniBootstrap.toString().replace(/globalObject/g, currentNamespace.globalObject)};${fakeUniBootstrapName}(packInit,__packConfig.packPath,__packConfig.appMode);};`
+                return `var __packConfig=require('../pack.config.js');var App=function(packInit){var ${fakeUniBootstrapName}=${fakeUniBootstrap.toString().replace(/globalObject/g, currentNamespace.globalObject)};${fakeUniBootstrapName}(packInit,__packConfig.packPath,__packConfig.appMode,'${platform}');};`
             }
         }, {
             skipBinary: false
@@ -131,6 +134,10 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe(filterAllJs)
         .pipe(strip())
         .pipe(uniRequireWxResource())
+        .pipe($.replace(/[\s\S]*/, function (match) {
+            const injectCode = mixinsEnvCode(match)
+            return injectCode + match
+        }))
         .pipe(filterAllJs.restore)
         .pipe(filterMain)
         .pipe($.replace(/^/, function (match) {
@@ -179,6 +186,7 @@ gulp.task('subMode:createUniSubPackage', function(){
             let pathLevel = getLevel(this.file.relative)
             p2 = p2 + ';'
             p2.replace(/\s*import\s*:\s*(('[^\s';]*')|("[^\s";]*"))/g, function (match, p1) {
+                p1 = p1.replace(/(wxss)|(ttss)|(css)(['"])$/,`${currentNamespace.css}$4`)
                 str += `@import ${p1.replace(regExpWxResources,getLevelPath(pathLevel))};\n`
             })
             return p1 + str

@@ -5,6 +5,7 @@ const path = require('path')
 const fs = require('fs-extra')
 const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace} = require('../preset')
 const {writeLastLine} = require('../utils')
+const {mixinsEnvCode} = require('../mixinAllEnv')
 function checkMainPackFileCanResolve (file) {
     const mainPath = projectToSubPackageConfig[currentNamespace.mainMpPath] + '/' + projectToSubPackageConfig.subPackagePath
     // 先判断base里是否有文件
@@ -17,6 +18,9 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
     const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
     const packTarget = target + '/' + projectToSubPackageConfig.subPackagePath
+    const filterAllHtml = $.filter([basePackPath + '/**/*.wxml', basePackPath + '/**/*.ttml', basePackPath + '/**/*.swan'], {restore: true})
+    const filterAllCss = $.filter([basePackPath + '/**/*.wxss', basePackPath + '/**/*.ttss', basePackPath + '/**/*.css'], {restore: true})
+    const filterAllJs = $.filter([basePackPath + '/**/*.js'], {restore: true})
     return gulp.src([
         basePackPath,
         basePackPath + '/**/*',
@@ -37,5 +41,21 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
                 return true
             }
         }))
+        .pipe(filterAllHtml)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.html
+        }))
+        .pipe(filterAllHtml.restore)
+        .pipe(filterAllCss)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.css
+        }))
+        .pipe(filterAllCss.restore)
+        .pipe(filterAllJs)
+        .pipe($.replace(/[\s\S]*/, function (match) {
+            const injectCode = mixinsEnvCode(match)
+            return injectCode + match
+        }))
+        .pipe(filterAllJs.restore)
         .pipe(gulp.dest(packTarget, {cwd}))
 })

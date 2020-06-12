@@ -76,5 +76,6 @@ module.exports = {
     basePath,
     subModePath,
     targetPath,
-    packIsSubpackage
+    packIsSubpackage,
+    mpTypeNamespace
 }

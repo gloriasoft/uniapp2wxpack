@@ -1,7 +1,9 @@
 // 静态方法，会被通过toString转换成字符串，直接es5
-function fakeUniBootstrap (vueInit, packPath , appMode) {
+function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
     if(!globalObject.__uniapp2wxpack) {
-        globalObject.__uniapp2wxpack = {}
+        globalObject.__uniapp2wxpack = {
+            platform: platform
+        }
     }
     var packObject = globalObject.__uniapp2wxpack[packPath.replace('/', '')] = {
         '__packInit': {}

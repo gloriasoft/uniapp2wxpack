@@ -48,7 +48,7 @@ const shared = {
       }
     })
   ],
-  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log'],
+  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log', 'find-global-deps-sourcetype', 'postcss-comment'],
 }
 
 export default [

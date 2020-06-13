@@ -356,7 +356,7 @@ mainWeixinMp/app.json中的分包配置
 ### 混写说明  
 从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过判断wx.__uniapp2wxpack.platform来做一些不同平台的条件判断。  
   
-例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量allresource，可以任意混写不同端的代码。
+例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。
 projectToSubPackageConfig.js
 ```javascript
 module.exports={
@@ -376,7 +376,7 @@ module.exports={
      * process.env.PACK_TYPE = toutiao 默认值为 'src/ttresource'
      * 也可以自行设定，通过环境变量process.env.PACK_TYPE进行动态设置
      */
-    wxResourcePath: 'allresource',
+    wxResourcePath: 'src/allresource',
     // 原生资源目录路径别名, null代表使用默认值，默认值为 @wxResource (所有类型小程序通用)
     wxResourceAlias: null,
     // 引用原生资源的js的特殊API名称设定, null代表使用默认值，默认值为 __uniRequireWx (所有类型小程序通用)

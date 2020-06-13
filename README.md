@@ -438,10 +438,10 @@ module.exports = {
         // 插件1
         customPlugin,
         // 插件2
-        function (content) {
+        function (content, pathObj) {
             // 处理头条小程序没有 onUnhandledRejection
             // 对app.js处理
-            if (process.env.PACK_TYPE === 'toutiao' && this.file.relative.match(/^\/app.js$/)) {
+            if (process.env.PACK_TYPE === 'toutiao' && pathObj.relative.match(/^\/app.js$/)) {
                 const injectCode = `
                     tt.onUnhandledRejection = function () {
                         // .......

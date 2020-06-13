@@ -1,4 +1,5 @@
 # uniapp2wxpack  
+### [访问源码仓库查看最新文档](https://github.com/devilwjp/uniapp2wxpack)  
 ## Uni-App的小程序解耦构建，并使uni-app支持混写模式(暂支持微信、头条，其他小程序即将全支持)  
 + 可以将uni-app项目输出给任何原生小程序项目作为目录、作为分包、甚至做极端的项目混合
 + 可以直接在uni-app项目中引入原生小程序项目、页面、模块、任何资源，完全不需要修改原生小程序的代码  
@@ -355,7 +356,7 @@ mainWeixinMp/app.json中的分包配置
 ### 混写说明  
 从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过判断wx.__uniapp2wxpack.platform来做一些不同平台的条件判断。  
   
-例如，我们将微信原生目录和头条原生目录设置成一个allNativeMp，将原生原生资源和头条原生资源的对应目录页设置成同一个allresource，可以任意混写不同端的代码。
+例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量allresource，可以任意混写不同端的代码。
 projectToSubPackageConfig.js
 ```javascript
 module.exports={
@@ -386,20 +387,75 @@ module.exports={
     configWxResourceKey: null
 }
 ```  
+比如在uni-app某各页面vue文件  
+```vue
+<template>
+    <view>teat</view>
+</template>
+<script>
+export default {
+    methods: {
+        jump () {
+            // 使用了微信小程序的原生对象
+            wx.navigateTo({
+                '/pages/test/test'
+            })
+        }
+    }
+}
+</script>
+<style>
+/*引入原生头条小程序的ttss*/
+__uniWxss{
+    import: '@wxResource/nativeCommon/test.ttss';
+    import: '@wxResource/nativeCommon/test1.ttss';
+}
+</style>
+```  
+**并且原生资源中又有许多其他不同端的小程序页面和样式文件**  
+**最后发布生成头条或者微信小程序时，插件都会处理成不同端需要的对象和文件名**  
+这里需要注意的是，现在的混写只是处理各端全局对象(比如wx,swan,tt等)和文件名(比如wxml、wxss、ttml、ttss、swan、css等)，如果遇到是各端api和组件的差异，仍然需要开发者自行处理，开发者可以在自定义plugin中进行中心化的处理，也可以在项目代码中直接通过区分不同端来处理  
+  
 ### 自定义plugin  
 从3.2.0版本开始支持自定义plugin，设置projectToSubPackageConfig.js  
 ```javascript
+// 定义插件
+/**
+* 插件接收content和pathObj参数，代表进入插件的文件内容和文件路径对象，返回的内容将作为该文件编译后的内容，不能返回null或者undefined，文件的路径是根据最终打包之后的项目文件路径
+* @param content
+* @param pathObj {relative, absolute}
+* @returns {*}
+*/
+function customPlugin (content, pathObj) {
+    if (pathObj.relative.match(/js$/i)) {
+        return `var customVar = 12345;\n${content}`
+    }
+    return content
+}
+
 module.exports = {
     plugins: [
+        // 插件1
+        customPlugin,
+        // 插件2
         function (content) {
-            if (this.file.relative.match(/js$/i)) {
-                return `var customVar = 12345;\n${content}`
+            // 处理头条小程序没有 onUnhandledRejection
+            // 对app.js处理
+            if (process.env.PACK_TYPE === 'toutiao' && this.file.relative.match(/^\/app.js$/)) {
+                const injectCode = `
+                    tt.onUnhandledRejection = function () {
+                        // .......
+                    };
+                    \n
+                `
+                return injectCode + content
             }
             return content
         }
     ]
 }
-```
+```  
+自定义plugin是最后一步处理的，所以有最高编译权，最多的用途应该是处理混写中插件不能处理的一些不同端api不兼容的情况
   
 ### 极端方式的原生小程序项目迁移到uni-app项目  
 将完整的微信原生小程序项目，保证目录结构不变的情况下迁移到uni-app中，使uni-app的目录结构与原生项目的目录结构保持一致（不单独区分uniSubpackage目录）  

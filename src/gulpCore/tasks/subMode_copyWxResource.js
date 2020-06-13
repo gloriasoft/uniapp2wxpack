@@ -87,6 +87,6 @@ gulp.task('subMode:copyWxResource', function () {
                 return true
             }
         }))
-        .pipe($.replace(/[\s\S]*/, runPlugins))
+        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath)))
         .pipe(gulp.dest(subModePath, {cwd}));
 })

@@ -58,6 +58,6 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
             return injectCode + match
         }))
         .pipe(filterAllJs.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins))
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, packTarget))))
         .pipe(gulp.dest(packTarget, {cwd}))
 })

@@ -4,6 +4,7 @@ const {cwd, target, env, projectToSubPackageConfig, program, basePath, currentNa
 const {writeLastLine} = require('../utils')
 const fs = require('fs-extra')
 const {runPlugins} = require('../plugins')
+const path = require('path')
 gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
     let base = projectToSubPackageConfig[currentNamespace.mainMpPath]
     const filterAppWxss = $.filter([`${base}/app.css`, `${base}/app.wxss`, `${base}/app.ttss`], {restore: true})
@@ -32,6 +33,6 @@ gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAppWxss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins))
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : '')))))
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
 })

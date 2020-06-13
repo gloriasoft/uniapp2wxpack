@@ -80,6 +80,6 @@ gulp.task('watch:mainWeixinMp', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAllCss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins))
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : '')))))
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}));
 })

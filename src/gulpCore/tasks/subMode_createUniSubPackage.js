@@ -207,6 +207,6 @@ gulp.task('subMode:createUniSubPackage', function(){
             skipBinary: false
         }))
         .pipe(filterWxss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins))
+        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath)))
         .pipe(gulp.dest(subModePath, {cwd}))
 })

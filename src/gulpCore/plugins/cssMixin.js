@@ -6,6 +6,7 @@ const cssArr = Object.keys(mpTypeNamespace).map((key) => {
 const cssRegExp = new RegExp(`\\.(${cssArr.join('|')})$`, 'i')
 function cssMixinPlugin (content, pathObj) {
     if (pathObj.relative.match(cssRegExp)) {
+        console.log(pathObj.relative)
         content = content.replace(/@import\s+['"](\S+)['"]/g, function (match, cssUrl) {
             return `@import '${cssUrl.replace(cssRegExp, '.' + currentNamespace.css)}'`;
         });

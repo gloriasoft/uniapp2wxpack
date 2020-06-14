@@ -10,8 +10,9 @@
 + **支持多套不同端的原生小程序代码直接在一个项目中进行开发，并且可发布成一套** ✌  
 + 支持极端方式的原生小程序迁移到uni-app方式（原生项目与uni项目全目录混合，见极端方式的原生小程序迁移到uni-app说明）  
   
-#### [点击进入小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
-
+#### [点击进入微信小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
+#### [点击进入头条小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-ttpack)  
+  
 ## Why?  
 uni-app真的很好用，但是官方并未提供较为优雅的项目迁移和无损升级的方式（其实其他跨端框架也没有好的方案），最终决定实现一套为uni-app打造的融合开发模式解决方案，这套方案已经不是一套只针对项目迁移和升级的方案，而更是一套针对所有新项目推荐的架构设计体系。因为它本身已经是一套可以混写各端原生代码的跨端插件。插件采用二次编译的方式无损的对uni-app编译之后的文件进行再编译，这样的好处是uni-app的升级不会影响到插件本身。  
 
@@ -362,7 +363,7 @@ mainWeixinMp/app.json中的分包配置
 从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过判断wx.__uniapp2wxpack.platform来做一些不同平台的条件判断。  
 **(系统默认全局对个小程序平台的全局对象进行混写，其他更多的混写需要在插件中配置)**
   
-例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。最后配置插件，开启更高级的混写，现在只提供了3个混写插件，分别是polyfillPlugin、cssMixinPlugin、htmlMixinPlugin。混写只能对不是太复杂的页面进行处理，复杂业务的页面混写处理后可能还是有有问题，需要手动进行修复
+例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。最后配置插件，开启更高级的混写，现在只提供了3个混写插件，分别是polyfillPlugin、cssMixinPlugin、htmlMixinPlugin。混写只能对不是太复杂的页面进行处理，复杂业务的页面混写处理后可能还是有有问题，需要手动进行修复  
 projectToSubPackageConfig.js
 ```javascript
 module.exports={
@@ -429,12 +430,13 @@ __uniWxss{
   
 ### 系统plugin  
 从3.2.0版本开始支持plugin，设置projectToSubPackageConfig.js, 现在支持3个系统插件  
+插件处理的文件路径是经过打包后的路径，就是在dist目录中各环境各端的pack目录中的物理路径  
 ```javascript
 module.exports = {
     plugins: [
         'polyfillPlugin', // 对一些js方法的polyfill
         'htmlMixinPlugin', // html混写
-        'cssMxinPlugin' // css混写
+        'cssMixinPlugin' // css混写
     ]
 }
 ```    

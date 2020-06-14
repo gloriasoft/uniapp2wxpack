@@ -95,7 +95,7 @@ class nodeAst {
                 prevStr += this.writeText(child)
                 return prevStr
             }
-            const {nodeName, attrs, childNodes} = child
+            const {nodeName, attrs, childNodes = []} = child
             prevStr += this.writeOpenTag(nodeName, attrs)
             prevStr += this.render(childNodes)
             prevStr += this.writeCloseTag(nodeName)

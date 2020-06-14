@@ -3,8 +3,10 @@ const $ = require('gulp-load-plugins')()
 const del = require('del')
 const path = require('path')
 const fs = require('fs-extra')
-const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace} = require('../preset')
+const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace, mpTypeNamespace} = require('../preset')
 const {writeLastLine} = require('../utils')
+const {mixinsEnvCode} = require('../mixinAllEnv')
+const {runPlugins} = require('../plugins')
 function checkMainPackFileCanResolve (file) {
     const mainPath = projectToSubPackageConfig[currentNamespace.mainMpPath] + '/' + projectToSubPackageConfig.subPackagePath
     // 先判断base里是否有文件
@@ -17,6 +19,15 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
     const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
     const packTarget = target + '/' + projectToSubPackageConfig.subPackagePath
+    const cssPathArr = []
+    const htmlPathArr = []
+    Object.keys(mpTypeNamespace).forEach((key) => {
+        cssPathArr.push(`${basePackPath}/**/*.${mpTypeNamespace[key].css}`)
+        htmlPathArr.push(`${basePackPath}/**/*.${mpTypeNamespace[key].html}`)
+    })
+    const filterAllHtml = $.filter([...htmlPathArr], {restore: true})
+    const filterAllCss = $.filter([...cssPathArr], {restore: true})
+    const filterAllJs = $.filter([basePackPath + '/**/*.js'], {restore: true})
     return gulp.src([
         basePackPath,
         basePackPath + '/**/*',
@@ -37,5 +48,22 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
                 return true
             }
         }))
+        .pipe(filterAllHtml)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.html
+        }))
+        .pipe(filterAllHtml.restore)
+        .pipe(filterAllCss)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.css
+        }))
+        .pipe(filterAllCss.restore)
+        .pipe(filterAllJs)
+        .pipe($.replace(/[\s\S]*/, function (match) {
+            const injectCode = mixinsEnvCode(match)
+            return injectCode + match
+        }))
+        .pipe(filterAllJs.restore)
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, packTarget))))
         .pipe(gulp.dest(packTarget, {cwd}))
 })

@@ -12,13 +12,25 @@ const {
     targetPath,
     program,
     packIsSubpackage,
-    currentNamespace
+    currentNamespace,
+    mpTypeNamespace
 } = require('../preset')
 const {writeLastLine} = require('../utils')
+const {mixinsEnvCode} = require('../mixinAllEnv')
+const {runPlugins} = require('../plugins')
 gulp.task('watch:mainWeixinMp', function () {
-    let base = projectToSubPackageConfig[currentNamespace.mainMpPath]
-    let basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
-    let filterAppJs = $.filter([base + '/app.js'], {restore: true})
+    const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
+    const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
+    const cssPathArr = []
+    const htmlPathArr = []
+    Object.keys(mpTypeNamespace).forEach((key) => {
+        cssPathArr.push(`${base}/**/*.${mpTypeNamespace[key].css}`)
+        htmlPathArr.push(`${base}/**/*.${mpTypeNamespace[key].html}`)
+    })
+    const filterAppJs = $.filter([base + '/app.js'], {restore: true})
+    const filterAllJs = $.filter([base + '/**/*.js'], {restore: true})
+    const filterAllHtml = $.filter([...htmlPathArr], {restore: true})
+    const filterAllCss = $.filter([...cssPathArr], {restore: true})
     return gulp.src([
         base+'/**/*',
         '!'+base+'/app.json',
@@ -42,6 +54,12 @@ gulp.task('watch:mainWeixinMp', function () {
                 return true
             }
         }))
+        .pipe(filterAllJs)
+        .pipe($.replace(/[\s\S]*/, function (match) {
+            const injectCode = mixinsEnvCode(match)
+            return injectCode + match
+        }))
+        .pipe(filterAllJs.restore)
         .pipe(filterAppJs)
         .pipe($.replace(/^/, function (match) {
             if (packIsSubpackage.mode || program.plugin) return ''
@@ -59,5 +77,16 @@ gulp.task('watch:mainWeixinMp', function () {
             skipBinary:false
         }))
         .pipe(filterAppJs.restore)
+        .pipe(filterAllHtml)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.html
+        }))
+        .pipe(filterAllHtml.restore)
+        .pipe(filterAllCss)
+        .pipe($.rename(function (path) {
+            path.extname = '.' + currentNamespace.css
+        }))
+        .pipe(filterAllCss.restore)
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : '')))))
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}));
 })

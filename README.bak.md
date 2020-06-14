@@ -1,30 +1,32 @@
 # uniapp2wxpack  
-### [访问源码仓库查看最新文档](https://github.com/devilwjp/uniapp2wxpack)  
-## Uni-App的小程序解耦构建，并使uni-app支持混写模式(暂支持微信、头条，其他小程序即将全支持)  
-+ 可以将uni-app项目输出给任何原生小程序项目作为目录、作为分包、甚至做极端的项目混合
-+ 可以直接在uni-app项目中引入原生小程序项目、页面、模块、任何资源，完全不需要修改原生小程序的代码  
-+ 可以保持原生小程序的目录结构不变，同时开发uni-app文件和原生小程序文件  
-+ 可以使uni-app进行微信原生小程序插件的开发✌（[详见微信小程序插件项目示例](https://github.com/devilwjp/uni-project-to-plugin)）  
-+ **支持混写各小程序端代码，运行时都会转成目标端代码，无需分平台编写（原生代码也支持，意味着一套原生微信小程序代码，可发布成其他小程序代码）** ✌  
-+ **可自定义插件，对文件进行自定义编译（见自定义plugin说明）** ✌  
-+ **支持多套不同端的原生小程序代码直接在一个项目中进行开发，并且可发布成一套** ✌  
+## Uni-App的小程序解耦构建(支持微信、头条)  
+### 可以将uni-app项目输出给任何原生小程序项目作为目录、作为分包、甚至做极端的项目混合
+### 可以直接在uni-app项目中引入原生小程序项目、页面、模块、任何资源（wxss、js、wxml、json、wxs、ttss、ttml等），完全不需要修改原生小程序的代码  
+### 可以保持原生小程序的目录结构不变，同时开发uni-app文件和原生小程序文件  
+### 可以使uni-app支持原生小程序插件的开发
+  
+### 对uni-app在小程序的打包方案进行改造，形成解耦打包，并且支持原生页面直接在uni-app项目中使用  
++ 可以使uni-app项目输出小程序的分包，被其他小程序项目使用  
+  
++ 支持原生页面直接在uni-app项目中使用（还支持任何原生的js、wxss、ttss在uni-app项目中使用）  
+  
++ 支持原生小程序项目直接在uni-app项目中进行开发，uni-app项目可以通过全局对象wx或tt，在main.js或者App.vue中将相关的方法公开到wx对象中（因为解耦构建会在主小程序app.js的开头引入uni目录的app.js）  
+  
++ 支持uni-app项目调用原生小程序项目中的资源   
+  
++ 对uni包的App.vue的特殊处理方式（详见appMode）  
+  
++ 支持小程序插件的开发模式（[详见微信小程序插件项目示例](https://github.com/devilwjp/uni-project-to-plugin)）  
+  
 + 支持极端方式的原生小程序迁移到uni-app方式（原生项目与uni项目全目录混合，见极端方式的原生小程序迁移到uni-app说明）  
   
-#### [点击进入微信小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
-#### [点击进入头条小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-ttpack)  
++ 支持在uni的vue文件中引入原生主小程序或者wxresource目录中的wxs（见引入原生资源的wxs部分）  
   
-## Why?  
-uni-app真的很好用，但是官方并未提供较为优雅的项目迁移和无损升级的方式（其实其他跨端框架也没有好的方案），最终决定实现一套为uni-app打造的融合开发模式解决方案，这套方案已经不是一套只针对项目迁移和升级的方案，而更是一套针对所有新项目推荐的架构设计体系。因为它本身已经是一套可以混写各端原生代码的跨端插件。插件采用二次编译的方式无损的对uni-app编译之后的文件进行再编译，这样的好处是uni-app的升级不会影响到插件本身。  
+### [点击进入微信小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
 
-## 混写与跨端（详见混写说明）  
-最初只是想提供一套能让uni-app更繁荣的架构模式，可以让uni-app与原生项目打通，自由的互相套用。为此，也提供了类似uni-app的platform的各端单独的原生小程序目录。插件的工作就是将原生小程序文件和uni-app小程序文件混合兼容，保证生命周期按需求体现。但这种设计并不纯粹和彻底，为什么不能直接让微信原生小程序项目与uni-app项目混合的同时可以做到发布成头条小程序项目呢？所以，插件单独实现了各原生小程序的**混写**功能，也就是一套原生小程序可以发布成多套其他的原生小程序。  
+### [点击进入头条小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-ttpack)  
 
-## 系统插件和自定义插件  
-作为本身就是一个插件的角色来说，再提供一个自定义插件功能，有点多余，但是uni-app的静态编译原理，再加上原生小程序文件是插件单独处理的，导致一些高级玩家可以加入一些自己的想法再进行一次静态编译做到中心化的一些逻辑处理和视图层的处理。  
-  
-**插件功能及通过插件不断优化混写将是未来长期的工作**  
-  
-## 快速上手  
+### 快速上手  
 #### 第一步  
 准备一个uni-app项目  
   
@@ -70,9 +72,9 @@ build:mp-weixin-pack-plugin
 + uni-app项目目录   
     + project/src  
 + 主小程序项目（原生）目录  
-    + project/mainWeixinMp   (可根据不同的平台单独进行配置修改)  
+    + project/mainWeixinMp   (可进行配置修改)  
 + uni-app项目中的原生小程序页面（或资源）目录  
-    + project/src/wxresource（头条是ttresource，也可设置成同一个）   
+    + project/src/wxresource（头条是ttresource）   
 + uni-app项目打包输出之后在主小程序项目中的目录  
     + uniSubpackage (可进行配置修改)  
 
@@ -113,7 +115,7 @@ build:mp-weixin-pack-plugin
 在mainWeixinMp目录放置用于预览的原生小程序项目（hello world小程序即可），然后正常的在src中进行编码开发，解耦包打包完成后的包文件在dist/build/mp-weixin-pack/包名称  
   
 + 与完整小程序项目协同开发  
-此时mainWeixinMp目录应该是真实的小程序项目（建议关联真实小程序项目的git仓库，mainWeixinMp作为一个git子仓库的存在），构建打包完成后即可将打包后内容(dist/build/mp-weixin-pack)覆盖mainWeixinMp的内容进行子仓库提交   
+此时mainWeixinMp目录应该是真实的小程序项目（建议关联真实小程序项目的git仓库，mainWeixinMp作为一个git子仓库的存在），构建打包完成后即可将打包后内容(dist/build/mp-weixin-pack)覆盖mainWeixinMp的内容进行子仓库提交    
 
 ### 运行  
 可根据实际项目情况修改以下两个命令的内容
@@ -157,9 +159,7 @@ module.exports={
     // 引用原生资源的样式文件的特殊API名称设定, null代表使用默认值，默认值为 __uniWxss (所有类型小程序通用)
     uniImportWxssApiName: null,
     // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
-    configWxResourceKey: null,
-    // 插件
-    plugins: []
+    configWxResourceKey: null
 }
 ````   
 
@@ -359,135 +359,6 @@ mainWeixinMp/app.json中的分包配置
   }]
 }
 ````
-### 混写说明  
-从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过判断wx.__uniapp2wxpack.platform来做一些不同平台的条件判断。  
-**(系统默认全局对个小程序平台的全局对象进行混写，其他更多的混写需要在插件中配置)**
-  
-例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。最后配置插件，开启更高级的混写，现在只提供了3个混写插件，分别是polyfillPlugin、cssMixinPlugin、htmlMixinPlugin。混写只能对不是太复杂的页面进行处理，复杂业务的页面混写处理后可能还是有有问题，需要手动进行修复  
-projectToSubPackageConfig.js
-```javascript
-module.exports={
-    // 微信原生小程序目录
-    mainWeixinMpPath: 'allNativeMp',
-    // 头条原生小程序目录
-    mainToutiaoMpPath: 'allNativeMp',
-    // uni项目输出的分包在原生小程序中的路径
-    subPackagePath: 'uniSubpackage',
-    // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
-    appMode: 'relegation',
-    // 如果原生小程序目录中的目录名称合uni项目输出的目录名相同，是否融合处理，默认不融合处理，直接忽略原生小程序里的目录，merge以uni项目优先
-    mergePack: false,
-    /**
-     * uni项目中的原生资源目录路径,null代表使用默认值
-     * process.env.PACK_TYPE = weixin 默认值为 'src/wxresource'
-     * process.env.PACK_TYPE = toutiao 默认值为 'src/ttresource'
-     * 也可以自行设定，通过环境变量process.env.PACK_TYPE进行动态设置
-     */
-    wxResourcePath: 'src/allresource',
-    // 原生资源目录路径别名, null代表使用默认值，默认值为 @wxResource (所有类型小程序通用)
-    wxResourceAlias: null,
-    // 引用原生资源的js的特殊API名称设定, null代表使用默认值，默认值为 __uniRequireWx (所有类型小程序通用)
-    uniRequireApiName: null,
-    // 引用原生资源的样式文件的特殊API名称设定, null代表使用默认值，默认值为 __uniWxss (所有类型小程序通用)
-    uniImportWxssApiName: null,
-    // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
-    configWxResourceKey: null,
-    plugins: [
-        'polyfillPlugin', // 对一些js方法的polyfill
-        'htmlMixinPlugin', // html混写
-        'cssMxinPlugin' // css混写
-    ]
-}
-```  
-比如在uni-app某各页面vue文件  
-```vue
-<template>
-    <view>teat</view>
-</template>
-<script>
-export default {
-    methods: {
-        jump () {
-            // 使用了微信小程序的原生对象
-            wx.navigateTo({
-                '/pages/test/test'
-            })
-        }
-    }
-}
-</script>
-<style>
-/*引入原生头条小程序的ttss*/
-__uniWxss{
-    import: '@wxResource/nativeCommon/test.ttss';
-    import: '@wxResource/nativeCommon/test1.ttss';
-}
-</style>
-```  
-**并且原生资源中又有许多其他不同端的小程序页面和样式文件**  
-**最后发布生成头条或者微信小程序时，插件都会处理成不同端需要的对象和文件名**  
-这里需要注意的是，现在的混写只是处理各端全局对象(比如wx,swan,tt等)和文件名(比如wxml、wxss、ttml、ttss、swan、css等)，如果遇到是各端api和组件的差异，仍然需要开发者自行处理，开发者可以在自定义plugin中进行中心化的处理，也可以在项目代码中直接通过区分不同端来处理  
-  
-### 系统plugin  
-从3.2.0版本开始支持plugin，设置projectToSubPackageConfig.js, 现在支持3个系统插件  
-插件处理的文件路径是经过打包后的路径，就是在dist目录中各环境各端的pack目录中的物理路径  
-```javascript
-module.exports = {
-    plugins: [
-        'polyfillPlugin', // 对一些js方法的polyfill
-        'htmlMixinPlugin', // html混写
-        'cssMixinPlugin' // css混写
-    ]
-}
-```    
-### 自定义plugin  
-从3.2.0版本开始支持自定义plugin，设置projectToSubPackageConfig.js  
-```javascript
-// 定义插件
-/**
-* 插件接收content和pathObj参数，代表进入插件的文件内容和文件路径对象，返回的内容将作为该文件编译后的内容，不能返回null或者undefined，文件的路径是根据最终打包之后的项目文件路径
-* @param content 文件内容
-* @param pathObj {relative, absolute} 文件路径对象
-* @param defaultPluginMap 系统插件对象，可以调用到系统插件
-* @returns {*}
-*/
-function customPlugin (content, pathObj, defaultPluginMap) {
-    if (pathObj.relative.match(/.wxml$/i)) {
-        // 使用系统插件处理wxml
-        return defaultPluginMap.htmlMixinPlugin(content, pathObj)
-    }
-    
-    if (pathObj.relative.match(/.js$/i)) {
-        return `var customVar = 12345;\n${content}`
-    }
-    return content
-}
-
-module.exports = {
-    plugins: [
-        'polyfillPlugin',
-        // 插件1
-        customPlugin,
-        // 插件2
-        function (content, pathObj, defaultPluginMap) {
-            // 处理头条小程序没有 onUnhandledRejection
-            // 对app.js处理
-            if (process.env.PACK_TYPE === 'toutiao' && pathObj.relative.match(/^\/app.js$/)) {
-                const injectCode = `
-                    tt.onUnhandledRejection = function () {
-                        // .......
-                    };
-                    \n
-                `
-                return injectCode + content
-            }
-            return content
-        }
-    ]
-}
-```  
-自定义plugin是最后一步处理的，所以有最高编译权，最多的用途应该是处理混写中插件不能处理的一些不同端api不兼容的情况
-  
 ### 极端方式的原生小程序项目迁移到uni-app项目  
 将完整的微信原生小程序项目，保证目录结构不变的情况下迁移到uni-app中，使uni-app的目录结构与原生项目的目录结构保持一致（不单独区分uniSubpackage目录）  
 规则：  

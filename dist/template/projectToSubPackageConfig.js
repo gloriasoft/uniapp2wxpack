@@ -23,5 +23,7 @@ module.exports={
     // 引用原生资源的样式文件的特殊API名称设定, null代表使用默认值，默认值为 __uniWxss (所有类型小程序通用)
     uniImportWxssApiName: null,
     // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
-    configWxResourceKey: null
+    configWxResourceKey: null,
+    // 插件
+    plugins: []
 }

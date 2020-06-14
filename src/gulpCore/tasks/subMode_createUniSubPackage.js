@@ -2,7 +2,7 @@ const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
 const fs = require('fs-extra')
 const del = require('del')
-const parse5 = require('parse5')
+const nodeAst = require('../nodeAst')
 const path =require('path')
 const strip = require('gulp-strip-comments')
 const {fakeUniBootstrapName, fakeUniBootstrap} = require('../fakeUniBootstrapEs5')
@@ -18,10 +18,17 @@ const {
     regExpWxResources,
     regExpUniImportWxss,
     wxResourceAlias,
-    currentNamespace
+    currentNamespace,
+    mpTypeNamespace
 } = require('../preset')
-const {writeLastLine, getLevel, getLevelPath} = require('../utils')
+const platform = process.env.PACK_TYPE
+const {writeLastLine, getLevel, getLevelPath, deepFind} = require('../utils')
+const {mixinsEnvCode} = require('../mixinAllEnv')
 const {uniRequireWxResource} = require('../uniRequire')
+const {runPlugins} = require('../plugins')
+const cssArr = Object.keys(mpTypeNamespace).map((key) => {
+    return mpTypeNamespace[key].css
+})
 
 // 如果uni的app.js和原生的app.js是同一个路径
 function checkBaseAppJsIsTopAppJs (file) {
@@ -29,16 +36,6 @@ function checkBaseAppJsIsTopAppJs (file) {
     const topAppWxssPath = path.resolve(targetPath, `app.${currentNamespace.css}`)
     const currentFilePath = file.path.replace(basePath, subModePath)
     return topAppJsPath === currentFilePath || topAppWxssPath === currentFilePath
-}
-
-// 深层查找
-function deepFind (child, callback) {
-    if (!callback) return
-    callback(child)
-    if (!child.childNodes) return
-    child.childNodes.forEach((child) => {
-        deepFind(child, callback)
-    })
 }
 
 gulp.task('subMode:createUniSubPackage', function(){
@@ -65,6 +62,7 @@ gulp.task('subMode:createUniSubPackage', function(){
     const filterJson = $.filter([base + '/**/*.json'], {restore: true})
     const filterWxml = $.filter([`${base}/**/*.${currentNamespace.html}`], {restore: true})
 
+
     return gulp.src([
         base + '/**',
         '!' + base + '/*.*',
@@ -88,31 +86,21 @@ gulp.task('subMode:createUniSubPackage', function(){
         }))
         .pipe(filterWxml)
         .pipe($.replace(/[\s\S]*/, function (match) {
-            const document = parse5.parse(match)
+            const ast = new nodeAst(match)
             let updated = 0
-            // 直接获取body
-            const body = document.childNodes[0].childNodes[1]
-            deepFind(document, (child) => {
-                // 修正img标签
-                if (child.nodeName === 'img') {
-                    child.nodeName = 'image'
-                    child.tagName = 'image'
-                }
+            deepFind(ast.topNode, (child) => {
                 if (child.nodeName === '#text' && child.parentNode.nodeName === 'wxs') {
                     const valueMatch = child.value.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
                         const pathLevel = getLevel(this.file.relative)
                         const resultPath = p1.replace(regExpWxResources, getLevelPath(pathLevel)).replace(/['"]/g, '')
-                        child.parentNode.attrs.push({
-                            name: 'src',
-                            value: resultPath
-                        })
+                        child.parentNode.attrs.src = resultPath
                         child.parentNode.childNodes = []
                         updated = 1
                         console.log(`\n编译${subMatch}-->require(${resultPath})`)
                     })
                 }
             })
-            return updated ? parse5.serialize(body) : match
+            return updated ? ast.render() : match
         }, {
             skipBinary: false
         }))
@@ -122,7 +110,7 @@ gulp.task('subMode:createUniSubPackage', function(){
             if (program.plugin) {
                 return `var App=function(packInit){};${currentNamespace.globalObject}.canIUse=function(){return false};`
             } else {
-                return `var __packConfig=require('../pack.config.js');var App=function(packInit){var ${fakeUniBootstrapName}=${fakeUniBootstrap.toString().replace(/globalObject/g, currentNamespace.globalObject)};${fakeUniBootstrapName}(packInit,__packConfig.packPath,__packConfig.appMode);};`
+                return `var __packConfig=require('../pack.config.js');var App=function(packInit){var ${fakeUniBootstrapName}=${fakeUniBootstrap.toString().replace(/globalObject/g, currentNamespace.globalObject)};${fakeUniBootstrapName}(packInit,__packConfig.packPath,__packConfig.appMode,'${platform}');};`
             }
         }, {
             skipBinary: false
@@ -131,6 +119,10 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe(filterAllJs)
         .pipe(strip())
         .pipe(uniRequireWxResource())
+        .pipe($.replace(/[\s\S]*/, function (match) {
+            const injectCode = mixinsEnvCode(match)
+            return injectCode + match
+        }))
         .pipe(filterAllJs.restore)
         .pipe(filterMain)
         .pipe($.replace(/^/, function (match) {
@@ -179,6 +171,8 @@ gulp.task('subMode:createUniSubPackage', function(){
             let pathLevel = getLevel(this.file.relative)
             p2 = p2 + ';'
             p2.replace(/\s*import\s*:\s*(('[^\s';]*')|("[^\s";]*"))/g, function (match, p1) {
+                const reg = new RegExp(`(${cssArr.join('|')})(['"])$`)
+                p1 = p1.replace(reg,`${currentNamespace.css}$2`)
                 str += `@import ${p1.replace(regExpWxResources,getLevelPath(pathLevel))};\n`
             })
             return p1 + str
@@ -198,5 +192,6 @@ gulp.task('subMode:createUniSubPackage', function(){
             skipBinary: false
         }))
         .pipe(filterWxss.restore)
+        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath)))
         .pipe(gulp.dest(subModePath, {cwd}))
 })

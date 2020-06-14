@@ -18,8 +18,11 @@ uni-app真的很好用，但是官方并未提供较为优雅的项目迁移和�
 ## 混写与跨端（详见混写说明）  
 最初只是想提供一套能让uni-app更繁荣的架构模式，可以让uni-app与原生项目打通，自由的互相套用。为此，也提供了类似uni-app的platform的各端单独的原生小程序目录。插件的工作就是将原生小程序文件和uni-app小程序文件混合兼容，保证生命周期按需求体现。但这种设计并不纯粹和彻底，为什么不能直接让微信原生小程序项目与uni-app项目混合的同时可以做到发布成头条小程序项目呢？所以，插件单独实现了各原生小程序的**混写**功能，也就是一套原生小程序可以发布成多套其他的原生小程序。  
 
-## 自定义插件  
+## 系统插件和自定义插件  
 作为本身就是一个插件的角色来说，再提供一个自定义插件功能，有点多余，但是uni-app的静态编译原理，再加上原生小程序文件是插件单独处理的，导致一些高级玩家可以加入一些自己的想法再进行一次静态编译做到中心化的一些逻辑处理和视图层的处理。  
+  
+**插件功能及通过插件不断优化混写将是未来长期的工作**  
+  
 ## 快速上手  
 #### 第一步  
 准备一个uni-app项目  
@@ -355,8 +358,9 @@ mainWeixinMp/app.json中的分包配置
 ````
 ### 混写说明  
 从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过判断wx.__uniapp2wxpack.platform来做一些不同平台的条件判断。  
+**(系统默认全局对个小程序平台的全局对象进行混写，其他更多的混写需要在插件中配置)**
   
-例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。
+例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。最后配置插件，开启更高级的混写，现在只提供了3个混写插件，分别是polyfillPlugin、cssMixinPlugin、htmlMixinPlugin。混写只能对不是太复杂的页面进行处理，复杂业务的页面混写处理后可能还是有有问题，需要手动进行修复
 projectToSubPackageConfig.js
 ```javascript
 module.exports={
@@ -384,7 +388,12 @@ module.exports={
     // 引用原生资源的样式文件的特殊API名称设定, null代表使用默认值，默认值为 __uniWxss (所有类型小程序通用)
     uniImportWxssApiName: null,
     // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
-    configWxResourceKey: null
+    configWxResourceKey: null,
+    plugins: [
+        'polyfillPlugin', // 对一些js方法的polyfill
+        'htmlMixinPlugin', // html混写
+        'cssMxinPlugin' // css混写
+    ]
 }
 ```  
 比如在uni-app某各页面vue文件  
@@ -416,6 +425,17 @@ __uniWxss{
 **最后发布生成头条或者微信小程序时，插件都会处理成不同端需要的对象和文件名**  
 这里需要注意的是，现在的混写只是处理各端全局对象(比如wx,swan,tt等)和文件名(比如wxml、wxss、ttml、ttss、swan、css等)，如果遇到是各端api和组件的差异，仍然需要开发者自行处理，开发者可以在自定义plugin中进行中心化的处理，也可以在项目代码中直接通过区分不同端来处理  
   
+### 系统plugin  
+从3.2.0版本开始支持plugin，设置projectToSubPackageConfig.js, 现在支持3个系统插件  
+```javascript
+module.exports = {
+    plugins: [
+        'polyfillPlugin', // 对一些js方法的polyfill
+        'htmlMixinPlugin', // html混写
+        'cssMxinPlugin' // css混写
+    ]
+}
+```    
 ### 自定义plugin  
 从3.2.0版本开始支持自定义plugin，设置projectToSubPackageConfig.js  
 ```javascript
@@ -435,6 +455,7 @@ function customPlugin (content, pathObj) {
 
 module.exports = {
     plugins: [
+        'polyfillPlugin',
         // 插件1
         customPlugin,
         // 插件2

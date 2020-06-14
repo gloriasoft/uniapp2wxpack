@@ -28,7 +28,6 @@
     "del": "^4.1.1",
     "domhandler": "^3.0.0",
     "fast-xml-parser": "^3.17.4",
-    "find-global-deps-sourcetype": "^1.0.0",
     "fs-extra": "^9.0.0",
     "gulp": "^4.0.2",
     "gulp-batch-replace": "0.0.0",

@@ -23,7 +23,7 @@ function runPlugins (root) {
             if (typeof plugin !== 'function') {
                 return prevMatch
             }
-            const result = plugin(prevMatch, pathObject)
+            const result = plugin(prevMatch, pathObject, defaultPluginMap)
             if (result == null) return prevMatch
             return result
         }, match)

@@ -156,7 +156,9 @@ module.exports={
     // 引用原生资源的样式文件的特殊API名称设定, null代表使用默认值，默认值为 __uniWxss (所有类型小程序通用)
     uniImportWxssApiName: null,
     // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
-    configWxResourceKey: null
+    configWxResourceKey: null,
+    // 插件
+    plugins: []
 }
 ````   
 
@@ -442,12 +444,18 @@ module.exports = {
 // 定义插件
 /**
 * 插件接收content和pathObj参数，代表进入插件的文件内容和文件路径对象，返回的内容将作为该文件编译后的内容，不能返回null或者undefined，文件的路径是根据最终打包之后的项目文件路径
-* @param content
-* @param pathObj {relative, absolute}
+* @param content 文件内容
+* @param pathObj {relative, absolute} 文件路径对象
+* @param defaultPluginMap 系统插件对象，可以调用到系统插件
 * @returns {*}
 */
-function customPlugin (content, pathObj) {
-    if (pathObj.relative.match(/js$/i)) {
+function customPlugin (content, pathObj, defaultPluginMap) {
+    if (pathObj.relative.match(/.wxml$/i)) {
+        // 使用系统插件处理wxml
+        return defaultPluginMap.htmlMixinPlugin(content, pathObj)
+    }
+    
+    if (pathObj.relative.match(/.js$/i)) {
         return `var customVar = 12345;\n${content}`
     }
     return content
@@ -459,7 +467,7 @@ module.exports = {
         // 插件1
         customPlugin,
         // 插件2
-        function (content, pathObj) {
+        function (content, pathObj, defaultPluginMap) {
             // 处理头条小程序没有 onUnhandledRejection
             // 对app.js处理
             if (process.env.PACK_TYPE === 'toutiao' && pathObj.relative.match(/^\/app.js$/)) {

@@ -1,4 +1,4 @@
-// 内部自定义插件，混写html
+// 内部自定义插件，混写css
 const {currentNamespace, mpTypeNamespace} = require('../preset')
 const cssArr = Object.keys(mpTypeNamespace).map((key) => {
     return mpTypeNamespace[key].css

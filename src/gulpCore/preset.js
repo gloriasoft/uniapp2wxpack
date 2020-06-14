@@ -11,19 +11,22 @@ const mpTypeNamespace = {
         html: 'wxml',
         css: 'wxss',
         globalObject: 'wx',
-        mainMpPath: 'mainWeixinMpPath'
+        mainMpPath: 'mainWeixinMpPath',
+        directivePrefix: 'wx:'
     },
     baidu: {
         html: 'swan',
         css: 'css',
         globalObject: 'swan',
-        mainMpPath: 'mainBaiduMpPath'
+        mainMpPath: 'mainBaiduMpPath',
+        directivePrefix: 's-'
     },
     toutiao: {
         html: 'ttml',
         css: 'ttss',
         globalObject: 'tt',
-        mainMpPath: 'mainToutiaoMpPath'
+        mainMpPath: 'mainToutiaoMpPath',
+        directivePrefix: 'tt:'
     }
 }
 const currentNamespace = mpTypeNamespace[program.type]

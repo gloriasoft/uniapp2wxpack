@@ -12,17 +12,26 @@ const {
     regExpUniImportWxss,
     wxResourceAlias,
     wxResourcePath,
-    currentNamespace
+    currentNamespace,
+    mpTypeNamespace
 } = require('../preset')
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
 const {uniRequireWxResource} = require('../uniRequire')
 const {runPlugins} = require('../plugins')
+const cssArr = []
+const cssPathArr = []
+const htmlPathArr = []
+Object.keys(mpTypeNamespace).forEach((key) => {
+    cssArr.push(mpTypeNamespace[key].css)
+    cssPathArr.push(`${wxResourcePath}/**/*.${mpTypeNamespace[key].css}`)
+    htmlPathArr.push(`${wxResourcePath}/**/*.${mpTypeNamespace[key].html}`)
+})
 
 gulp.task('subMode:copyWxResource', function () {
     const filterJs = $.filter([wxResourcePath + '/**/*.js'], {restore: true})
-    const filterWxss = $.filter([`${wxResourcePath}/**/*.css`, `${wxResourcePath}/**/*.wxss`, `${wxResourcePath}/**/*.ttss`], {restore: true})
-    const filterHtml = $.filter([`${wxResourcePath}/**/*.swan`, `${wxResourcePath}/**/*.wxml`, `${wxResourcePath}/**/*.ttml`], {restore: true})
+    const filterWxss = $.filter([...cssPathArr], {restore: true})
+    const filterHtml = $.filter([...htmlPathArr], {restore: true})
     return gulp.src([wxResourcePath + '/**', wxResourcePath], {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([
             wxResourcePath + '/**',
@@ -52,7 +61,8 @@ gulp.task('subMode:copyWxResource', function () {
             let str = ''
             let pathLevel = getLevel(this.file.relative)
             ;(p2 + ';').replace(/\s*import\s*:\s*(('[^\s']*')|("[^\s']*"))/g, function (match, p1) {
-                p1 = p1.replace(/(wxss)|(ttss)|(css)(['"])$/,`${currentNamespace.css}$4`)
+                const reg = new RegExp(`(${cssArr.join('|')})(['"])$`)
+                p1 = p1.replace(reg,`${currentNamespace.css}$2`)
                 str += `@import ${p1.replace(regExpWxResources, getLevelPath(pathLevel))};\n`
             })
             return p1 + str

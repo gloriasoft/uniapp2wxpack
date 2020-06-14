@@ -24,3 +24,13 @@ exports.writeLastLine = function writeLastLine (val) {
         log('解耦构建，正在监听中......(此过程如果出现权限问题，请使用管理员权限运行)')
     }, 300)
 }
+
+// 深层查找
+exports.deepFind = function deepFind (child, callback, index, brotherNodes) {
+    if (!callback) return
+    callback(child, index, brotherNodes)
+    if (!child.childNodes) return
+    child.childNodes.forEach((child, index, arr) => {
+        deepFind(child, callback, index, arr)
+    })
+}

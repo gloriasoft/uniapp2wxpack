@@ -3,7 +3,7 @@ const $ = require('gulp-load-plugins')()
 const del = require('del')
 const path = require('path')
 const fs = require('fs-extra')
-const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace} = require('../preset')
+const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace, mpTypeNamespace} = require('../preset')
 const {writeLastLine} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
 const {runPlugins} = require('../plugins')
@@ -19,8 +19,14 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
     const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
     const packTarget = target + '/' + projectToSubPackageConfig.subPackagePath
-    const filterAllHtml = $.filter([basePackPath + '/**/*.wxml', basePackPath + '/**/*.ttml', basePackPath + '/**/*.swan'], {restore: true})
-    const filterAllCss = $.filter([basePackPath + '/**/*.wxss', basePackPath + '/**/*.ttss', basePackPath + '/**/*.css'], {restore: true})
+    const cssPathArr = []
+    const htmlPathArr = []
+    Object.keys(mpTypeNamespace).forEach((key) => {
+        cssPathArr.push(`${basePackPath}/**/*.${mpTypeNamespace[key].css}`)
+        htmlPathArr.push(`${basePackPath}/**/*.${mpTypeNamespace[key].html}`)
+    })
+    const filterAllHtml = $.filter([...htmlPathArr], {restore: true})
+    const filterAllCss = $.filter([...cssPathArr], {restore: true})
     const filterAllJs = $.filter([basePackPath + '/**/*.js'], {restore: true})
     return gulp.src([
         basePackPath,

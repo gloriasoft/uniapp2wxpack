@@ -1,6 +1,6 @@
 {
   "name": "uniapp2wxpack",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "",
   "main": "./dist/index.js",
   "scripts": {
@@ -42,6 +42,7 @@
     "htmlparser2": "^4.1.0",
     "parse5": "^6.0.0",
     "postcss-comment": "^2.0.0",
+    "preprocess": "^3.2.0",
     "single-line-log": "^1.1.2",
     "strip-json-comments": "^3.0.1"
   },

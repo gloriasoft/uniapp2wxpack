@@ -25,5 +25,10 @@ module.exports={
     // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
     configWxResourceKey: null,
     // 插件
-    plugins: []
+    plugins: [
+        // 条件编译插件应该在混写插件之前使用
+        'jsPreProcessPlugin', // js条件编译
+        'cssPreProcessPlugin', // css条件编译
+        'htmlPreProcessPlugin', // html条件编译
+    ]
 }

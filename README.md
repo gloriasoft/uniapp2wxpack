@@ -1,4 +1,5 @@
 # uniapp2wxpack  
+**[QQ群:701697982【uniapp2wxpack问题群】](https://jq.qq.com/?_wv=1027&k=2DjrpVZL)**  
 ### [访问源码仓库查看最新文档](https://github.com/devilwjp/uniapp2wxpack)  
 ## Uni-App的小程序解耦构建，并使uni-app支持混写模式(暂支持微信、头条，其他小程序即将全支持)  
 + 可以将uni-app项目输出给任何原生小程序项目作为目录、作为分包、甚至做极端的项目混合
@@ -8,6 +9,7 @@
 + **支持混写各小程序端代码，运行时都会转成目标端代码，无需分平台编写（原生代码也支持，意味着一套原生微信小程序代码，可发布成其他小程序代码）** ✌  
 + **可自定义插件，对文件进行自定义编译（见自定义plugin说明）** ✌  
 + **支持多套不同端的原生小程序代码直接在一个项目中进行开发，并且可发布成一套** ✌  
++ **支持原生小程序代码的条件编译（js、css、html均支持，见条件编译说明）** ✌  
 + 支持极端方式的原生小程序迁移到uni-app方式（原生项目与uni项目全目录混合，见极端方式的原生小程序迁移到uni-app说明）  
   
 #### [点击进入微信小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
@@ -360,10 +362,10 @@ mainWeixinMp/app.json中的分包配置
 }
 ````
 ### 混写说明  
-从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过判断wx.__uniapp2wxpack.platform来做一些不同平台的条件判断。  
-**(系统默认全局对个小程序平台的全局对象进行混写，其他更多的混写需要在插件中配置)**
+从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过条件编译来做一些不同平台的条件判断。  
+**(系统默认全局对个小程序平台的全局对象和文件后缀名进行混写，其他更多的混写需要在插件中配置)**  
   
-例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。最后配置插件，开启更高级的混写，现在只提供了3个混写插件，分别是polyfillPlugin、cssMixinPlugin、htmlMixinPlugin。混写只能对不是太复杂的页面进行处理，复杂业务的页面混写处理后可能还是有有问题，需要手动进行修复  
+例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。最后配置插件，开启更高级的混写，混写只能对不是太复杂的页面进行处理，复杂业务的页面混写处理后可能还是有有问题，需要手动通过条件编译进行修复  
 projectToSubPackageConfig.js
 ```javascript
 module.exports={
@@ -393,9 +395,13 @@ module.exports={
     // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
     configWxResourceKey: null,
     plugins: [
+        // 条件编译插件应该在混写插件之前使用
+        'jsPreProcessPlugin', // js条件编译
+        'cssPreProcessPlugin', // css条件编译
+        'htmlPreProcessPlugin', // html条件编译
         'polyfillPlugin', // 对一些js方法的polyfill
         'htmlMixinPlugin', // html混写
-        'cssMxinPlugin' // css混写
+        'cssMixinPlugin' // css混写
     ]
 }
 ```  
@@ -434,12 +440,84 @@ __uniWxss{
 ```javascript
 module.exports = {
     plugins: [
-        'polyfillPlugin', // 对一些js方法的polyfill
-        'htmlMixinPlugin', // html混写
-        'cssMixinPlugin' // css混写
+         // 条件编译插件应该在混写插件之前使用
+         'jsPreProcessPlugin', // js条件编译
+         'cssPreProcessPlugin', // css条件编译
+         'htmlPreProcessPlugin', // html条件编译
+         'polyfillPlugin', // 对一些js方法的polyfill
+         'htmlMixinPlugin', // html混写
+         'cssMixinPlugin' // css混写
     ]
 }
-```    
+```  
+### 条件编译  
+从3.2.1开始，提供了3个支持原生小程序代码的条件编译系统插件, 通过判断PACK_TYPE可以进行平台的条件判断你，也可以在启动命令中加入自定义的环境变量进行判断（一切在uniapp2wxpack进程中的process.env对象中的环境变量都能被用于判断）  
+原生小程序条件编译的语法与uni-app的条件编译略有差异  
+**jsPreProcessPlugin**  
+js的条件编译插件  
+```javascript
+// @if PACK_TYPE='weixin'
+console.log('only weixin')
+// @endif
+
+// @if PACK_TYPE!='baidu'
+console.log('exclude baidu')
+// @endif
+
+// @if PACK_TYPE='weixin' || PACK_TYPE='baidu'
+console.log('weixin or baidu')
+// @endif
+
+// @if PACK_TYPE='weixin' && NODE_ENV='development'
+console.log('weixin and development')
+// @endif
+```  
+**cssPreProcessPlugin**  
+css的条件编译插件  
+```css
+/* @if PACK_TYPE='weixin' */
+.test{
+    color: red;
+}
+/* @endif */
+
+/* @if PACK_TYPE!='baidu' */
+.test{
+    color: red;
+}
+/* @endif */
+
+/* @if PACK_TYPE='weixin' || PACK_TYPE='baidu' */
+.test{
+    color: red;
+}
+/* @endif */
+
+/* @if PACK_TYPE='weixin' && NODE_ENV='development' */
+.test{
+    color: red;
+}
+/* @endif */
+```  
+**htmlPreProcessPlugin**  
+html的条件编译插件  
+```html
+<!-- @if PACK_TYPE='weixin' -->
+<view>only weixin</view>
+<!-- @endif -->
+
+<!-- @if PACK_TYPE!='baidu' -->
+<view>exclude baidu</view>
+<!-- @endif -->
+
+<!-- @if PACK_TYPE='weixin' || PACK_TYPE='baidu' -->
+<view>weixin or baidu</view>
+<!-- @endif -->
+
+<!-- @if PACK_TYPE='weixin' && NODE_ENV='development' -->
+<view>weixin and development</view>
+<!-- @endif -->
+```  
 ### 自定义plugin  
 从3.2.0版本开始支持自定义plugin，设置projectToSubPackageConfig.js  
 ```javascript

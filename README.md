@@ -1,5 +1,5 @@
-# uniapp2wxpack  
-**[QQ群:701697982【uniapp2wxpack问题群】](https://jq.qq.com/?_wv=1027&k=2DjrpVZL)**  
+# uniapp2wxpack   
+QQ群:701697982 <a target="_blank" href="https://jq.qq.com/?_wv=1027&k=2DjrpVZL" rel="nofollow"><img src="http://pub.idqqimg.com/wpa/images/group.png" alt="uniapp2wxpack问题反馈群"></a>
 ### [访问源码仓库查看最新文档](https://github.com/devilwjp/uniapp2wxpack)  
 ## Uni-App的小程序解耦构建，并使uni-app支持混写模式(暂支持微信、头条，其他小程序即将全支持)  
 + 可以将uni-app项目输出给任何原生小程序项目作为目录、作为分包、甚至做极端的项目混合

@@ -24,6 +24,17 @@ function htmlMixinPlugin (content, pathObj) {
                 return
             }
 
+            // 针对头条，class属性不能是非字符串，但是可以通过加一个空格解决这个问题
+            if (process.env.PACK_TYPE === 'toutiao' && child.attrs.class && !child.attrs.class.match(/(^\s|(\s$))/)) {
+                child.attrs.class += ' '
+            }
+
+            // 针对头条，头条没有catchTap，转换成bindTap
+            if (process.env.PACK_TYPE === 'toutiao' && child.attrs.catchTap && !child.attrs.bindTap) {
+                child.attrs.bindTap = child.attrs.catchTap
+                delete child.attrs.catchTap
+            }
+
             // 过滤include和import和wxs节点引用的文件后缀
             if (child.nodeName.match(/^(include|import|wxs)$/)) {
                 if (child.attrs.src) {

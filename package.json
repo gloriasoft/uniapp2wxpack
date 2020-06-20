@@ -1,6 +1,6 @@
 {
   "name": "uniapp2wxpack",
-  "version": "3.2.3",
+  "version": "3.3.0-beta-1",
   "description": "",
   "main": "./dist/lib/index.js",
   "scripts": {

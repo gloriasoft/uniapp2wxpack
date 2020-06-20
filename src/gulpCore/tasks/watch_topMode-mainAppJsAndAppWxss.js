@@ -36,6 +36,8 @@ gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAppWxss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : '')))))
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
 })

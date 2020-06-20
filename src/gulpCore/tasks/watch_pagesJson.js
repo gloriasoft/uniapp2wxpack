@@ -12,6 +12,8 @@ gulp.task('watch:pagesJson', function () {
         })))
         .pipe(mergeToTargetJson('pagesJson'))
         .pipe($.rename('app.json'))
-        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath)))
+        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(target, {cwd}))
 })

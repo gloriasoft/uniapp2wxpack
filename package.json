@@ -2,7 +2,7 @@
   "name": "uniapp2wxpack",
   "version": "3.2.3",
   "description": "",
-  "main": "./dist/index.js",
+  "main": "./dist/lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node customBuild && terser src/index.js -o dist/index.js -m -c toplevel && cross-env BABEL_ENV=rollup rollup -c"
@@ -39,12 +39,11 @@
     "gulp-strip-comments": "^2.5.2",
     "gulp-strip-css-comments": "^2.0.0",
     "gulp-watch": "^5.0.1",
-    "htmlparser2": "^4.1.0",
-    "parse5": "^6.0.0",
     "postcss-comment": "^2.0.0",
     "preprocess": "^3.2.0",
     "single-line-log": "^1.1.2",
-    "strip-json-comments": "^3.0.1"
+    "strip-json-comments": "^3.0.1",
+    "vue-template-compiler": "^2.6.11"
   },
   "devDependencies": {
     "@babel/core": "^7.7.4",

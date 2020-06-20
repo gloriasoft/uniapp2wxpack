@@ -29,6 +29,7 @@ const {runPlugins} = require('../plugins')
 const cssArr = Object.keys(mpTypeNamespace).map((key) => {
     return mpTypeNamespace[key].css
 })
+const cssSet = new Set(cssArr)
 
 // 如果uni的app.js和原生的app.js是同一个路径
 function checkBaseAppJsIsTopAppJs (file) {
@@ -77,7 +78,12 @@ gulp.task('subMode:createUniSubPackage', function(){
             if (checkBaseAppJsIsTopAppJs(file)) return false
             if (file.event === 'unlink') {
                 try {
-                    del.sync([file.path.replace(basePath, path.resolve(cwd, subModePath))], {force: true})
+                    let filePath = file.path
+                    const extNameRegExp = new RegExp(`${file.extname}$`, 'i')
+                    if (cssSet.has(file.extname.substr(1))) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.css)
+                    }
+                    del.sync([filePath.replace(basePath, path.resolve(cwd, subModePath))], {force: true})
                 } catch (e) {}
                 return false
             } else {
@@ -122,6 +128,8 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe($.replace(/[\s\S]*/, function (match) {
             const injectCode = mixinsEnvCode(match)
             return injectCode + match
+        }, {
+            skipBinary: false
         }))
         .pipe(filterAllJs.restore)
         .pipe(filterMain)
@@ -192,6 +200,8 @@ gulp.task('subMode:createUniSubPackage', function(){
             skipBinary: false
         }))
         .pipe(filterWxss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath)))
+        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(subModePath, {cwd}))
 })

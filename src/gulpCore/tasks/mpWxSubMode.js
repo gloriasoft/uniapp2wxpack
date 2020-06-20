@@ -44,6 +44,7 @@ function buildProcess(){
     if (program.native) {
         tasks = [
             checkMainAppTask,
+            'watch:mainAppJson',
             'watch:native'
         ]
     }
@@ -58,7 +59,7 @@ function buildProcess(){
 }
 
 gulp.task('mpWxSubMode', gulp.series(function (done) {
-    console.log('对uni-app进行解耦构建，解除uni-app对原生小程序方法的改写，此过程如果出现权限问题，请使用管理员权限运行')
+    console.log('小程序解耦构建开启，此过程如果出现权限问题，请使用管理员权限运行')
     done()
 }, 'clean:previewDist',
 // 创建pack.config.js

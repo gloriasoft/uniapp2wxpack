@@ -11,6 +11,8 @@ gulp.task('watch:baseAppJson', function () {
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe(mergeToTargetJson('baseAppJson'))
-        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath)))
+        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(target, {cwd}))
 })

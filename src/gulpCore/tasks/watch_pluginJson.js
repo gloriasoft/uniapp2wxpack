@@ -10,6 +10,8 @@ gulp.task('watch:pluginJson', function () {
             // console.log('处理'+event.path)
             writeLastLine('处理' + event.relative + '......')
         })))
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + `/${projectToSubPackageConfig.subPackagePath}`))))
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + `/${projectToSubPackageConfig.subPackagePath}`)), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(target + `/${projectToSubPackageConfig.subPackagePath}`, {cwd}))
 })

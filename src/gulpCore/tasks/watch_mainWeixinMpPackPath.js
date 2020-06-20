@@ -21,9 +21,13 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
     const packTarget = target + '/' + projectToSubPackageConfig.subPackagePath
     const cssPathArr = []
     const htmlPathArr = []
+    const cssExtNameSet = new Set()
+    const htmlExtNameSet = new Set()
     Object.keys(mpTypeNamespace).forEach((key) => {
         cssPathArr.push(`${basePackPath}/**/*.${mpTypeNamespace[key].css}`)
         htmlPathArr.push(`${basePackPath}/**/*.${mpTypeNamespace[key].html}`)
+        cssExtNameSet.add('.' + mpTypeNamespace[key].css)
+        htmlExtNameSet.add('.' + mpTypeNamespace[key].html)
     })
     const filterAllHtml = $.filter([...htmlPathArr], {restore: true})
     const filterAllCss = $.filter([...cssPathArr], {restore: true})
@@ -41,7 +45,15 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
             if (!checkMainPackFileCanResolve(file)) return false
             if (file.event === 'unlink') {
                 try {
-                    del.sync([file.path.replace(path.resolve(cwd, base), path.resolve(cwd, target))], {force: true})
+                    let filePath = file.path
+                    const extNameRegExp = new RegExp(`${file.extname}$`, 'i')
+                    if (cssExtNameSet.has(file.extname)) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.css)
+                    }
+                    if (htmlExtNameSet.has(file.extname)) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.html)
+                    }
+                    del.sync([filePath.replace(path.resolve(cwd, base), path.resolve(cwd, target))], {force: true})
                 } catch (e) { }
                 return false
             } else {
@@ -62,8 +74,12 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
         .pipe($.replace(/[\s\S]*/, function (match) {
             const injectCode = mixinsEnvCode(match)
             return injectCode + match
+        }, {
+            skipBinary: false
         }))
         .pipe(filterAllJs.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, packTarget))))
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, packTarget)), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(packTarget, {cwd}))
 })

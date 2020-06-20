@@ -10,6 +10,10 @@ const {
 gulp.task('startToPackServe', gulp.series(
 // 初始化
 async function (done) {
+    if (program.native) {
+        done()
+        return
+    }
     if (!(await (fs.exists(basePath)))) {
         await (fs.mkdirs(basePath))
     }

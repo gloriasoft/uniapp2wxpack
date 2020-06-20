@@ -13,6 +13,8 @@ gulp.task('watch:mainAppJson', function () {
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe(mergeToTargetJson('mainAppJson'))
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : '')))))
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
 })

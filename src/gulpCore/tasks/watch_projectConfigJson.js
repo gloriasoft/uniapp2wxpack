@@ -9,6 +9,8 @@ gulp.task('watch:projectConfigJson', function () {
             // console.log('处理'+event.path)
             writeLastLine('处理' + event.relative + '......')
         })))
-        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath)))
+        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath), {
+            skipBinary: false
+        }))
         .pipe(gulp.dest(target, {cwd}))
 })

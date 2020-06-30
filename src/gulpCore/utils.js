@@ -29,8 +29,15 @@ exports.writeLastLine = function writeLastLine (val) {
 exports.deepFind = function deepFind (child, callback, index, brotherNodes) {
     if (!callback) return
     callback(child, index, brotherNodes)
-    if (!child.childNodes) return
-    child.childNodes.forEach((child, index, arr) => {
-        deepFind(child, callback, index, arr)
-    })
+    if (child.childNodes) {
+        child.childNodes.forEach((child, index, arr) => {
+            deepFind(child, callback, index, arr)
+        })
+        return
+    }
+    if (child.children) {
+        child.children.forEach((child, index, arr) => {
+            deepFind(child, callback, index, arr)
+        })
+    }
 }

@@ -1,10 +1,13 @@
 const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
-const {cwd, target, env, targetPath} = require('../preset')
+const {cwd, target, env, targetPath, pluginProcessFileTypes} = require('../preset')
 const {writeLastLine} = require('../utils')
 const mergeToTargetJson = require('../mergeToTargetJson')
 const {runPlugins} = require('../plugins')
 gulp.task('watch:pagesJson', function () {
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `/**/*.${fileType}`
+    }), {restore: true})
     return gulp.src('src/pages.json', {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch('src/pages.json', {cwd}, function (event) {
             // console.log('处理'+event.path)
@@ -12,6 +15,10 @@ gulp.task('watch:pagesJson', function () {
         })))
         .pipe(mergeToTargetJson('pagesJson'))
         .pipe($.rename('app.json'))
-        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath)))
+        .pipe(filterPluginsFiles)
+        .pipe($.replace(/[\s\S]*/, runPlugins(targetPath), {
+            skipBinary: false
+        }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(target, {cwd}))
 })

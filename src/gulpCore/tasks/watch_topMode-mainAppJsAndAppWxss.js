@@ -1,6 +1,6 @@
 const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
-const {cwd, target, env, projectToSubPackageConfig, program, basePath, currentNamespace, mpTypeNamespace} = require('../preset')
+const {cwd, target, env, projectToSubPackageConfig, program, basePath, currentNamespace, mpTypeNamespace, pluginProcessFileTypes} = require('../preset')
 const {writeLastLine} = require('../utils')
 const fs = require('fs-extra')
 const {runPlugins} = require('../plugins')
@@ -12,6 +12,9 @@ gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
     })
     const filterAppWxss = $.filter([...cssPathArr], {restore: true})
     const filterAppJs = $.filter([base + '/app.js'], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${base}/**/*.${fileType}`
+    }), {restore: true})
     return gulp.src([base + '/app.js', ...cssPathArr], {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev',$.watch([base + '/app.js', `${base}/app.${currentNamespace.css}`], {cwd}, function (event) {
             // console.log('处理'+event.path)
@@ -36,6 +39,10 @@ gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAppWxss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : '')))))
+        .pipe(filterPluginsFiles)
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))), {
+            skipBinary: false
+        }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
 })

@@ -224,7 +224,7 @@ function mergeToTargetJson (type) {
         if (program.type === 'toutiao' && targetJson.subPackages) {
             targetJson.subPackages.forEach((pack) => {
                 pack.pages.forEach((page) => {
-                    targetJson.pages.push(pack.root + '/' + page)
+                    targetJson.pages.push((pack.root + '/' + page).replace(/\/\//g, '/'))
                 })
             })
             delete targetJson.subPackages

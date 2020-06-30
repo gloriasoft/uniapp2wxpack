@@ -11,15 +11,19 @@ const {
     currentNamespace
 } = require('../preset')
 const {tryAgain} = require('../utils')
+
+async function checkMainAppTask (done) {
+    // 判断主小程序目录有没有app.js
+    let mainAppJsPath = path.resolve(cwd, projectToSubPackageConfig[currentNamespace.mainMpPath], 'app.js')
+    if (!(await (fs.exists(mainAppJsPath)))) {
+        await (fs.outputFile(mainAppJsPath, 'App({});'))
+    }
+    done()
+}
+
 function buildProcess(){
-    let tasks=[async function (done) {
-        // 判断主小程序目录有没有app.js
-        let mainAppJsPath = path.resolve(cwd, projectToSubPackageConfig[currentNamespace.mainMpPath], 'app.js')
-        if (!(await (fs.exists(mainAppJsPath)))) {
-            await (fs.outputFile(mainAppJsPath, 'App({});'))
-        }
-        done()
-    }, 'subMode:createUniSubPackage', 'subMode:copyWxResource',
+    let tasks = [
+        checkMainAppTask, 'subMode:createUniSubPackage', 'subMode:copyWxResource',
         ...(program.plugin ?
                 ['watch:pluginJson'] :
                 ['watch:baseAppJson', 'watch:pagesJson',
@@ -35,6 +39,16 @@ function buildProcess(){
         ),
         'watch:mainAppJson', 'watch:mainWeixinMp', 'watch:projectConfigJson'
     ]
+
+    // 纯原生模式
+    if (program.native) {
+        tasks = [
+            checkMainAppTask,
+            'watch:mainAppJson',
+            'watch:native'
+        ]
+    }
+
     if(env === 'build'){
         // 同步处理
         return gulp.series.apply(this,tasks)
@@ -45,12 +59,12 @@ function buildProcess(){
 }
 
 gulp.task('mpWxSubMode', gulp.series(function (done) {
-    console.log('对uni-app进行解耦构建，解除uni-app对原生小程序方法的改写，此过程如果出现权限问题，请使用管理员权限运行')
+    console.log('小程序解耦构建开启，此过程如果出现权限问题，请使用管理员权限运行')
     done()
 }, 'clean:previewDist',
 // 创建pack.config.js
 async function f (done) {
-    if (program.plugin) {
+    if (program.plugin || program.native) {
         done()
         return
     }

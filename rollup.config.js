@@ -48,14 +48,23 @@ const shared = {
       }
     })
   ],
-  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log', 'postcss-comment', 'htmlparser2', 'preprocess'],
+  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log', 'postcss-comment', 'htmlparser2', 'preprocess', 'vue-template-compiler'],
 }
 
 export default [
-  Object.assign({}, shared, {
-    output: {
-      file: 'dist/gulpfile.js',
-      format: 'cjs'
-    },
-  }),
+    Object.assign({}, {
+        ...shared,
+        input: 'src/lib/index.js'
+    }, {
+        output: {
+            file: 'dist/lib/index.js',
+            format: 'cjs'
+        },
+    }),
+    Object.assign({}, shared, {
+        output: {
+            file: 'dist/gulpfile.js',
+            format: 'cjs'
+        },
+    }),
 ]

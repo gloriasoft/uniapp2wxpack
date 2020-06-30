@@ -13,7 +13,8 @@ const {
     program,
     packIsSubpackage,
     currentNamespace,
-    mpTypeNamespace
+    mpTypeNamespace,
+    pluginProcessFileTypes
 } = require('../preset')
 const {writeLastLine} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
@@ -23,14 +24,21 @@ gulp.task('watch:mainWeixinMp', function () {
     const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath
     const cssPathArr = []
     const htmlPathArr = []
+    const cssExtNameSet = new Set()
+    const htmlExtNameSet = new Set()
     Object.keys(mpTypeNamespace).forEach((key) => {
         cssPathArr.push(`${base}/**/*.${mpTypeNamespace[key].css}`)
         htmlPathArr.push(`${base}/**/*.${mpTypeNamespace[key].html}`)
+        cssExtNameSet.add('.' + mpTypeNamespace[key].css)
+        htmlExtNameSet.add('.' + mpTypeNamespace[key].html)
     })
     const filterAppJs = $.filter([base + '/app.js'], {restore: true})
     const filterAllJs = $.filter([base + '/**/*.js'], {restore: true})
     const filterAllHtml = $.filter([...htmlPathArr], {restore: true})
     const filterAllCss = $.filter([...cssPathArr], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${base}/**/*.${fileType}`
+    }), {restore: true})
     return gulp.src([
         base+'/**/*',
         '!'+base+'/app.json',
@@ -47,7 +55,15 @@ gulp.task('watch:mainWeixinMp', function () {
         .pipe($.filter(function (file) {
             if (file.event === 'unlink') {
                 try {
-                    del.sync([file.path.replace(path.resolve(cwd, base), path.resolve(cwd, target))], {force: true})
+                    let filePath = file.path
+                    const extNameRegExp = new RegExp(`${file.extname}$`, 'i')
+                    if (cssExtNameSet.has(file.extname)) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.css)
+                    }
+                    if (htmlExtNameSet.has(file.extname)) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.html)
+                    }
+                    del.sync([filePath.replace(path.resolve(cwd, base), path.resolve(cwd, target))], {force: true})
                 } catch (e) {}
                 return false
             } else {
@@ -58,6 +74,8 @@ gulp.task('watch:mainWeixinMp', function () {
         .pipe($.replace(/[\s\S]*/, function (match) {
             const injectCode = mixinsEnvCode(match)
             return injectCode + match
+        }, {
+            skipBinary: false
         }))
         .pipe(filterAllJs.restore)
         .pipe(filterAppJs)
@@ -87,6 +105,10 @@ gulp.task('watch:mainWeixinMp', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAllCss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : '')))))
+        .pipe(filterPluginsFiles)
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))), {
+            skipBinary: false
+        }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}));
 })

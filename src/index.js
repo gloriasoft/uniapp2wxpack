@@ -9,6 +9,7 @@
         .option('--build <type>', 'build')
         .option('--plugin', '插件模式')
         .option('--type <type>', '解耦包类型(哪种小程序)', 'weixin')
+        .option('--native', '原生模式')
 
     program.parse(process.argv);
 
@@ -47,8 +48,14 @@
         production: 'mpWxSubMode'
     }
     if (commandType[program.build]) {
-        // const readline = require('readline');
-        spawn(process.execPath, [require.resolve('gulp/bin/gulp.js'), commandType[program.build], '--scope', process.cwd(), ...(program.plugin ? ['--plugin'] : []), '--type', program.type], {
+        spawn(process.execPath, [
+            require.resolve('gulp/bin/gulp.js'),
+            commandType[program.build],
+            '--scope', process.cwd(),
+            ...(program.plugin ? ['--plugin'] : []),
+            ...(program.native ? ['--native'] : []),
+            '--type', program.type
+        ], {
             cwd: __dirname,
             stdio: 'inherit'
         });
@@ -57,4 +64,3 @@
 
     console.log("缺少参数\n--create\n--build [development/production]")
 })();
-

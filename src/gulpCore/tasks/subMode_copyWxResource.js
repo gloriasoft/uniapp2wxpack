@@ -13,7 +13,8 @@ const {
     wxResourceAlias,
     wxResourcePath,
     currentNamespace,
-    mpTypeNamespace
+    mpTypeNamespace,
+    pluginProcessFileTypes
 } = require('../preset')
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
@@ -22,16 +23,23 @@ const {runPlugins} = require('../plugins')
 const cssArr = []
 const cssPathArr = []
 const htmlPathArr = []
+const cssExtNameSet = new Set()
+const htmlExtNameSet = new Set()
 Object.keys(mpTypeNamespace).forEach((key) => {
     cssArr.push(mpTypeNamespace[key].css)
     cssPathArr.push(`${wxResourcePath}/**/*.${mpTypeNamespace[key].css}`)
     htmlPathArr.push(`${wxResourcePath}/**/*.${mpTypeNamespace[key].html}`)
+    cssExtNameSet.add('.' + mpTypeNamespace[key].css)
+    htmlExtNameSet.add('.' + mpTypeNamespace[key].html)
 })
 
 gulp.task('subMode:copyWxResource', function () {
     const filterJs = $.filter([wxResourcePath + '/**/*.js'], {restore: true})
     const filterWxss = $.filter([...cssPathArr], {restore: true})
     const filterHtml = $.filter([...htmlPathArr], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${wxResourcePath}/**/*${fileType}`
+    }), {restore: true})
     return gulp.src([wxResourcePath + '/**', wxResourcePath], {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([
             wxResourcePath + '/**',
@@ -45,6 +53,8 @@ gulp.task('subMode:copyWxResource', function () {
         .pipe($.replace(/[\s\S]*/, function (match) {
             const injectCode = mixinsEnvCode(match)
             return injectCode + match
+        }, {
+            skipBinary: false
         }))
         .pipe($.replace(/^/, function (match) {
             let packagePath = getLevelPath(getLevel(this.file.relative))
@@ -90,13 +100,25 @@ gulp.task('subMode:copyWxResource', function () {
         .pipe($.filter(function (file) {
             if (file.event === 'unlink') {
                 try {
-                    del.sync([file.path.replace(path.resolve(cwd, wxResourcePath), path.resolve(cwd, subModePath))], {force: true})
+                    let filePath = file.path
+                    const extNameRegExp = new RegExp(`${file.extname}$`, 'i')
+                    if (cssExtNameSet.has(file.extname)) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.css)
+                    }
+                    if (htmlExtNameSet.has(file.extname)) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.html)
+                    }
+                    del.sync([filePath.replace(path.resolve(cwd, wxResourcePath), path.resolve(cwd, subModePath))], {force: true})
                 } catch (e) {}
                 return false
             } else {
                 return true
             }
         }))
-        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath)))
+        .pipe(filterPluginsFiles)
+        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath), {
+            skipBinary: false
+        }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(subModePath, {cwd}));
 })

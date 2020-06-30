@@ -4,6 +4,7 @@ program
     .option('--scope <type>', '运行目录', process.cwd())
     .option('--plugin', '插件模式')
     .option('--type <type>', '解耦包类型(哪种小程序)', 'weixin')
+    .option('--native', '原生模式')
 program.parse(process.argv);
 // 支持多种小程序解耦构建，默认为微信
 const mpTypeNamespace = {
@@ -42,6 +43,7 @@ const regExpUniRequire = new RegExp(`${uniRequireApiName}\\(([a-zA-Z.\\/"'@\\d]+
 const uniImportWxssApiName = projectToSubPackageConfig.uniImportWxssApiName || `__uniWxss`
 const regExpUniImportWxss = new RegExp(`(}|^|\\s|;)${uniImportWxssApiName}\\s*{([^{}]+)}`,'g')
 const configWxResourceKey = projectToSubPackageConfig.configWxResourceKey || 'wxResource'
+const pluginProcessFileTypes = projectToSubPackageConfig.pluginProcessFileTypes || ['js', 'json', 'wxml', 'ttml', 'ttss', 'swan', 'css', 'html', 'wxss', 'htm', 'wxs', 'sjs']
 
 let env = 'dev'
 if(process.env.NODE_ENV === 'production'){
@@ -61,6 +63,7 @@ const packIsSubpackage = {
 }
 
 module.exports = {
+    pluginProcessFileTypes,
     currentNamespace,
     program,
     cwd,

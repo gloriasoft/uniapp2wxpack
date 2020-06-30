@@ -45,6 +45,8 @@ require('./tasks/watch_mainWeixinMp')
 require('./tasks/subMode_createUniSubPackage')
 // 解耦构建处理wxresource目录
 require('./tasks/subMode_copyWxResource')
+// 原生小程序模式
+require('./tasks/watch_native')
 // 主调度任务
 require('./tasks/mpWxSubMode')
 // 开发启动任务

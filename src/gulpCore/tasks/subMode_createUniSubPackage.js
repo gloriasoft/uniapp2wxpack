@@ -19,7 +19,8 @@ const {
     regExpUniImportWxss,
     wxResourceAlias,
     currentNamespace,
-    mpTypeNamespace
+    mpTypeNamespace,
+    pluginProcessFileTypes
 } = require('../preset')
 const platform = process.env.PACK_TYPE
 const {writeLastLine, getLevel, getLevelPath, deepFind} = require('../utils')
@@ -29,6 +30,7 @@ const {runPlugins} = require('../plugins')
 const cssArr = Object.keys(mpTypeNamespace).map((key) => {
     return mpTypeNamespace[key].css
 })
+const cssSet = new Set(cssArr)
 
 // 如果uni的app.js和原生的app.js是同一个路径
 function checkBaseAppJsIsTopAppJs (file) {
@@ -43,6 +45,9 @@ gulp.task('subMode:createUniSubPackage', function(){
     const filterAllJs = $.filter(base + '/**/*.js', {restore: true})
     const filterVendor = $.filter([base + '/common/vendor.js'], {restore: true})
     const filterMain = $.filter([base + '/common/main.js'], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${base}/**/*.${fileType}`
+    }), {restore: true})
     const filterJs = $.filter([
         base + '/**/*.js',
         '!' + base + '/app.js',
@@ -77,7 +82,12 @@ gulp.task('subMode:createUniSubPackage', function(){
             if (checkBaseAppJsIsTopAppJs(file)) return false
             if (file.event === 'unlink') {
                 try {
-                    del.sync([file.path.replace(basePath, path.resolve(cwd, subModePath))], {force: true})
+                    let filePath = file.path
+                    const extNameRegExp = new RegExp(`${file.extname}$`, 'i')
+                    if (cssSet.has(file.extname.substr(1))) {
+                        filePath = filePath.replace(extNameRegExp, '.' + currentNamespace.css)
+                    }
+                    del.sync([filePath.replace(basePath, path.resolve(cwd, subModePath))], {force: true})
                 } catch (e) {}
                 return false
             } else {
@@ -89,12 +99,13 @@ gulp.task('subMode:createUniSubPackage', function(){
             const ast = new nodeAst(match)
             let updated = 0
             deepFind(ast.topNode, (child) => {
-                if (child.nodeName === '#text' && child.parentNode.nodeName === 'wxs') {
-                    const valueMatch = child.value.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
+                if (child.type === 1 && child.tag === 'wxs' && child.children.length === 1 && child.children[0].type === 3) {
+                    const childText = child.children[0]
+                    const valueMatch = childText.text.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
                         const pathLevel = getLevel(this.file.relative)
                         const resultPath = p1.replace(regExpWxResources, getLevelPath(pathLevel)).replace(/['"]/g, '')
-                        child.parentNode.attrs.src = resultPath
-                        child.parentNode.childNodes = []
+                        child.attrsMap.src = resultPath
+                        child.children = []
                         updated = 1
                         console.log(`\n编译${subMatch}-->require(${resultPath})`)
                     })
@@ -122,6 +133,8 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe($.replace(/[\s\S]*/, function (match) {
             const injectCode = mixinsEnvCode(match)
             return injectCode + match
+        }, {
+            skipBinary: false
         }))
         .pipe(filterAllJs.restore)
         .pipe(filterMain)
@@ -192,6 +205,10 @@ gulp.task('subMode:createUniSubPackage', function(){
             skipBinary: false
         }))
         .pipe(filterWxss.restore)
-        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath)))
+        .pipe(filterPluginsFiles)
+        .pipe($.replace(/[\s\S]*/, runPlugins(subModePath), {
+            skipBinary: false
+        }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(subModePath, {cwd}))
 })

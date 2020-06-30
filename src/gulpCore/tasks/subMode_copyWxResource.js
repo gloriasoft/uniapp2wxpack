@@ -13,7 +13,8 @@ const {
     wxResourceAlias,
     wxResourcePath,
     currentNamespace,
-    mpTypeNamespace
+    mpTypeNamespace,
+    pluginProcessFileTypes
 } = require('../preset')
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
@@ -36,6 +37,9 @@ gulp.task('subMode:copyWxResource', function () {
     const filterJs = $.filter([wxResourcePath + '/**/*.js'], {restore: true})
     const filterWxss = $.filter([...cssPathArr], {restore: true})
     const filterHtml = $.filter([...htmlPathArr], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${wxResourcePath}/**/*${fileType}`
+    }), {restore: true})
     return gulp.src([wxResourcePath + '/**', wxResourcePath], {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([
             wxResourcePath + '/**',
@@ -111,8 +115,10 @@ gulp.task('subMode:copyWxResource', function () {
                 return true
             }
         }))
+        .pipe(filterPluginsFiles)
         .pipe($.replace(/[\s\S]*/, runPlugins(subModePath), {
             skipBinary: false
         }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(subModePath, {cwd}));
 })

@@ -9,7 +9,8 @@ const {
     projectToSubPackageConfig,
     program,
     currentNamespace,
-    mpTypeNamespace
+    mpTypeNamespace,
+    pluginProcessFileTypes
 } = require('../preset')
 const {writeLastLine} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
@@ -29,6 +30,9 @@ gulp.task('watch:native', function () {
     const filterAllJs = $.filter([base + '/**/*.js'], {restore: true})
     const filterAllHtml = $.filter([...htmlPathArr], {restore: true})
     const filterAllCss = $.filter([...cssPathArr], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${base}/**/*.${fileType}`
+    }), {restore: true})
     return gulp.src([base+'/**/*', '!'+base+'/app.json'], {base: path.resolve(cwd, base), allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([base + '/**/*', '!/'+base+'/app.json'], {cwd}, function (event) {
             writeLastLine('处理' + event.relative + '......')
@@ -71,8 +75,10 @@ gulp.task('watch:native', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAllCss.restore)
+        .pipe(filterPluginsFiles)
         .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target)), {
             skipBinary: false
         }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(target, {cwd}));
 })

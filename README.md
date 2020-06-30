@@ -1,6 +1,6 @@
 # uniapp2wxpack   
-QQ群:701697982 <a target="_blank" href="https://jq.qq.com/?_wv=1027&k=2DjrpVZL" rel="nofollow"><img src="http://pub.idqqimg.com/wpa/images/group.png" alt="uniapp2wxpack问题反馈群"></a>
-### [访问源码仓库查看最新文档](https://github.com/devilwjp/uniapp2wxpack)  
+  
+问题反馈QQ群:701697982 <a target="_blank" href="https://jq.qq.com/?_wv=1027&k=2DjrpVZL" rel="nofollow"><img src="http://pub.idqqimg.com/wpa/images/group.png" alt="uniapp2wxpack问题反馈群"></a>  
 ## Uni-App的小程序解耦构建，并使uni-app支持混写模式(暂支持微信、头条，其他小程序即将全支持)  
 + 可以将uni-app项目输出给任何原生小程序项目作为目录、作为分包、甚至做极端的项目混合
 + 可以直接在uni-app项目中引入原生小程序项目、页面、模块、任何资源，完全不需要修改原生小程序的代码  
@@ -14,6 +14,7 @@ QQ群:701697982 <a target="_blank" href="https://jq.qq.com/?_wv=1027&k=2DjrpVZL"
   
 #### [点击进入微信小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-subpackage)  
 #### [点击进入头条小程序解耦开发项目示例](https://github.com/devilwjp/uni-project-to-ttpack)  
+
   
 ## Why?  
 uni-app真的很好用，但是官方并未提供较为优雅的项目迁移和无损升级的方式（其实其他跨端框架也没有好的方案），最终决定实现一套为uni-app打造的融合开发模式解决方案，这套方案已经不是一套只针对项目迁移和升级的方案，而更是一套针对所有新项目推荐的架构设计体系。因为它本身已经是一套可以混写各端原生代码的跨端插件。插件采用二次编译的方式无损的对uni-app编译之后的文件进行再编译，这样的好处是uni-app的升级不会影响到插件本身。  

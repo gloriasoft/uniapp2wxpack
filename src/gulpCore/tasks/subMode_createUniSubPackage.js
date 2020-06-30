@@ -19,7 +19,8 @@ const {
     regExpUniImportWxss,
     wxResourceAlias,
     currentNamespace,
-    mpTypeNamespace
+    mpTypeNamespace,
+    pluginProcessFileTypes
 } = require('../preset')
 const platform = process.env.PACK_TYPE
 const {writeLastLine, getLevel, getLevelPath, deepFind} = require('../utils')
@@ -44,6 +45,9 @@ gulp.task('subMode:createUniSubPackage', function(){
     const filterAllJs = $.filter(base + '/**/*.js', {restore: true})
     const filterVendor = $.filter([base + '/common/vendor.js'], {restore: true})
     const filterMain = $.filter([base + '/common/main.js'], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${base}/**/*.${fileType}`
+    }), {restore: true})
     const filterJs = $.filter([
         base + '/**/*.js',
         '!' + base + '/app.js',
@@ -95,12 +99,13 @@ gulp.task('subMode:createUniSubPackage', function(){
             const ast = new nodeAst(match)
             let updated = 0
             deepFind(ast.topNode, (child) => {
-                if (child.nodeName === '#text' && child.parentNode.nodeName === 'wxs') {
-                    const valueMatch = child.value.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
+                if (child.type === 1 && child.tag === 'wxs' && child.children.length === 1 && child.children[0].type === 3) {
+                    const childText = child.children[0]
+                    const valueMatch = childText.text.replace(regExpUniRequire, (subMatch, p1, offset, string) => {
                         const pathLevel = getLevel(this.file.relative)
                         const resultPath = p1.replace(regExpWxResources, getLevelPath(pathLevel)).replace(/['"]/g, '')
-                        child.parentNode.attrs.src = resultPath
-                        child.parentNode.childNodes = []
+                        child.attrsMap.src = resultPath
+                        child.children = []
                         updated = 1
                         console.log(`\n编译${subMatch}-->require(${resultPath})`)
                     })
@@ -200,8 +205,10 @@ gulp.task('subMode:createUniSubPackage', function(){
             skipBinary: false
         }))
         .pipe(filterWxss.restore)
+        .pipe(filterPluginsFiles)
         .pipe($.replace(/[\s\S]*/, runPlugins(subModePath), {
             skipBinary: false
         }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(subModePath, {cwd}))
 })

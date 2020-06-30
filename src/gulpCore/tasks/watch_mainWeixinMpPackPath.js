@@ -3,7 +3,7 @@ const $ = require('gulp-load-plugins')()
 const del = require('del')
 const path = require('path')
 const fs = require('fs-extra')
-const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace, mpTypeNamespace} = require('../preset')
+const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace, mpTypeNamespace, pluginProcessFileTypes} = require('../preset')
 const {writeLastLine} = require('../utils')
 const {mixinsEnvCode} = require('../mixinAllEnv')
 const {runPlugins} = require('../plugins')
@@ -32,6 +32,9 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
     const filterAllHtml = $.filter([...htmlPathArr], {restore: true})
     const filterAllCss = $.filter([...cssPathArr], {restore: true})
     const filterAllJs = $.filter([basePackPath + '/**/*.js'], {restore: true})
+    const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
+        return `${basePackPath}/**/*.${fileType}`
+    }), {restore: true})
     return gulp.src([
         basePackPath,
         basePackPath + '/**/*',
@@ -78,8 +81,10 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
             skipBinary: false
         }))
         .pipe(filterAllJs.restore)
+        .pipe(filterPluginsFiles)
         .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, packTarget)), {
             skipBinary: false
         }))
+        .pipe(filterPluginsFiles.restore)
         .pipe(gulp.dest(packTarget, {cwd}))
 })

@@ -49,7 +49,9 @@ gulp.task('watch:mainWeixinMp', function () {
         '!' + basePackPath + '/**/*'
     ], {base: path.resolve(cwd, base), allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([base + '/**/*', '!/' + base + '/app.json', '!/' + basePackPath + '/**/*'], {cwd}, function (event) {
-            // console.log('处理'+event.path)w
+            if (event.relative.match(/.json/)) {
+                // console.log('1111111111处理'+event.relative)
+            }
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe($.filter(function (file) {

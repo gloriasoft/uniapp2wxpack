@@ -31,6 +31,7 @@ const cssArr = Object.keys(mpTypeNamespace).map((key) => {
     return mpTypeNamespace[key].css
 })
 const cssSet = new Set(cssArr)
+const injectAppCss = require('../injectAppCss')
 
 // 如果uni的app.js和原生的app.js是同一个路径
 function checkBaseAppJsIsTopAppJs (file) {
@@ -96,6 +97,13 @@ gulp.task('subMode:createUniSubPackage', function(){
         }))
         .pipe(filterWxml)
         .pipe($.replace(/[\s\S]*/, function (match) {
+            // 判断是否有css文件，如果没有，创建一个空的
+            const cssPath = this.file.path.replace(new RegExp(`${currentNamespace.html}$`, 'i'), currentNamespace.css)
+            const cssRelative = this.file.relative.replace(new RegExp(`${currentNamespace.html}$`, 'i'), currentNamespace.css)
+            if (!fs.existsSync(cssPath)) {
+                fs.outputFileSync(path.resolve(cwd, subModePath, cssRelative), injectAppCss('', cssRelative))
+            }
+
             const ast = new nodeAst(match)
             let updated = 0
             deepFind(ast.topNode, (child) => {
@@ -197,10 +205,7 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe($.stripCssComments())
         .pipe($.replace(/^[\s\S]*$/, function (match) {
             if (subModePath === targetPath) return match
-            let pathLevel = getLevel(this.file.relative)
-            let mainWxss = `@import ${(`"${wxResourceAlias}/app.${currentNamespace.css}";`).replace(regExpWxResources,getLevelPath(pathLevel))}`
-            let result = `\n${match}`
-            return mainWxss + result
+            return injectAppCss(match, this.file.relative)
         }, {
             skipBinary: false
         }))

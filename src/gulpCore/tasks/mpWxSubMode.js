@@ -18,6 +18,12 @@ async function checkMainAppTask (done) {
     if (!(await (fs.exists(mainAppJsPath)))) {
         await (fs.outputFile(mainAppJsPath, 'App({});'))
     }
+
+    // 判断主小程序目录有没有app.wxss
+    // let mainAppCssPath = path.resolve(cwd, projectToSubPackageConfig[currentNamespace.mainMpPath], 'app.' + currentNamespace.css)
+    // if (!(await (fs.exists(mainAppCssPath)))) {
+    //     await (fs.outputFile(mainAppCssPath, ''))
+    // }
     done()
 }
 

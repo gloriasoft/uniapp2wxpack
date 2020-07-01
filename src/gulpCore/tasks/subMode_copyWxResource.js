@@ -25,6 +25,8 @@ const cssPathArr = []
 const htmlPathArr = []
 const cssExtNameSet = new Set()
 const htmlExtNameSet = new Set()
+const injectAppCss = require('../injectAppCss')
+
 Object.keys(mpTypeNamespace).forEach((key) => {
     cssArr.push(mpTypeNamespace[key].css)
     cssPathArr.push(`${wxResourcePath}/**/*.${mpTypeNamespace[key].css}`)
@@ -81,10 +83,7 @@ gulp.task('subMode:copyWxResource', function () {
         }))
         .pipe($.replace(/^[\s\S]*$/, function (match) {
             if (subModePath === targetPath) return match
-            let pathLevel = getLevel(this.file.relative)
-            let mainWxss = `@import ${(`"${wxResourceAlias}/app.${currentNamespace.css}";`).replace(regExpWxResources,getLevelPath(pathLevel))}`
-            let result = `\n${match}`
-            return mainWxss + result
+            return injectAppCss(match, this.file.relative)
         }, {
             skipBinary: false
         }))

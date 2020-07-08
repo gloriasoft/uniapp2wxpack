@@ -45,7 +45,7 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
         })
     }
 
-    globalObject.onAppRoute(function (options) {
+    globalObject.onAppRoute && globalObject.onAppRoute(function (options) {
         if (appMode !== 'top') {
             if(('/' + options.path).indexOf(packPath + '/') !== 0){
                 first = 1;

@@ -5,6 +5,9 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
             platform: platform
         }
     }
+    if (platform === 'alipay') {
+        platform = 'top'
+    }
     var packObject = globalObject.__uniapp2wxpack[packPath.replace('/', '')] = {
         '__packInit': {}
     };

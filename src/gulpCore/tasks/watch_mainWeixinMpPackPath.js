@@ -13,7 +13,6 @@ function checkMainPackFileCanResolve (file) {
     if (fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, base)))) return false
     // 在判断wxresource里是否有文件
     return !fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, wxResourcePath)));
-
 }
 gulp.task('watch:mainWeixinMpPackPath', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
@@ -45,7 +44,7 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe($.filter(function (file) {
-            if (!checkMainPackFileCanResolve(file)) return false
+            if (file.relative !== 'project.config.json' && !checkMainPackFileCanResolve(file)) return false
             if (file.event === 'unlink') {
                 try {
                     let filePath = file.path

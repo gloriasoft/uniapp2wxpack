@@ -28,6 +28,13 @@ const mpTypeNamespace = {
         globalObject: 'tt',
         mainMpPath: 'mainToutiaoMpPath',
         directivePrefix: 'tt:'
+    },
+    alipay: {
+        html: 'axml',
+        css: 'acss',
+        globalObject: 'my',
+        mainMpPath: 'mainAlipayMpPath',
+        directivePrefix: 'a:'
     }
 }
 const currentNamespace = mpTypeNamespace[program.type]
@@ -43,7 +50,7 @@ const regExpUniRequire = new RegExp(`${uniRequireApiName}\\(([a-zA-Z.\\/"'@\\d]+
 const uniImportWxssApiName = projectToSubPackageConfig.uniImportWxssApiName || `__uniWxss`
 const regExpUniImportWxss = new RegExp(`(}|^|\\s|;)${uniImportWxssApiName}\\s*{([^{}]+)}`,'g')
 const configWxResourceKey = projectToSubPackageConfig.configWxResourceKey || 'wxResource'
-const pluginProcessFileTypes = projectToSubPackageConfig.pluginProcessFileTypes || ['js', 'json', 'wxml', 'ttml', 'ttss', 'swan', 'css', 'html', 'wxss', 'htm', 'wxs', 'sjs']
+const pluginProcessFileTypes = projectToSubPackageConfig.pluginProcessFileTypes || ['js', 'json', 'wxml', 'ttml', 'ttss', 'swan', 'css', 'html', 'wxss', 'htm', 'wxs', 'sjs', 'acss', 'axml']
 
 let env = 'dev'
 if(process.env.NODE_ENV === 'production'){

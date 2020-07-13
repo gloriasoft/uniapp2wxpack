@@ -22,6 +22,12 @@
         const projectToSubPackageConfig = require('./template/projectToSubPackageConfig')
         targetPackageJson.scripts = {...templatePackageJson.scripts, ...targetPackageJson.scripts || {}}
         targetPackageJson.dependencies = {...templatePackageJson.dependencies, ...targetPackageJson.dependencies||{}}
+        // 备份老的配置文件
+        const targetConfigFilePath = path.resolve(targetPath, 'projectToSubPackageConfig.js')
+        if (fs.existsSync(targetConfigFilePath)) {
+            console.log('备份已存在的projectToSubPackageConfig')
+            fs.copySync(targetConfigFilePath, targetConfigFilePath.replace(/$/, `.bak_${Date.now()}`))
+        }
         fs.copySync(path.resolve(__dirname, 'template/projectToSubPackageConfig.js'), path.resolve(targetPath, 'projectToSubPackageConfig.js'))
         console.log('projectToSubPackageConfig植入成功')
         fs.writeJsonSync(path.resolve(targetPath,'package.json'), targetPackageJson,{ spaces: 2 })

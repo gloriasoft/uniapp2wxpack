@@ -12,6 +12,8 @@ module.exports={
     appMode: 'relegation',
     // 如果原生小程序目录中的目录名称合uni项目输出的目录名相同，是否融合处理，默认不融合处理，直接忽略原生小程序里的目录，merge以uni项目优先
     mergePack: false,
+    // uni-app项目的源码目录
+    sourceCodePath: 'src',
     /**
      * uni项目中的原生资源目录路径,null代表使用默认值
      * process.env.PACK_TYPE = weixin 默认值为 'src/wxresource'

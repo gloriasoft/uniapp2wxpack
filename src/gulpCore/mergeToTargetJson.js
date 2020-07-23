@@ -9,7 +9,8 @@ const {
     configWxResourceKey,
     base,
     packIsSubpackage,
-    currentNamespace
+    currentNamespace,
+    sourceCodePath
 } = require('./preset')
 const {writeLastLine} = require('./utils')
 const forceUpdateAppJs = require('./forceUpdateAppJs')
@@ -48,7 +49,7 @@ function mergeToTargetJson (type) {
         typeMap[type]()
         try {
             if (!config) {
-                config = JSON.parse(stripJsonComments(fs.readFileSync(path.resolve(cwd, 'src/pages.json'), 'utf8')))
+                config = JSON.parse(stripJsonComments(fs.readFileSync(path.resolve(cwd, sourceCodePath + '/pages.json'), 'utf8')))
             }
         } catch (e) {
             config = {}

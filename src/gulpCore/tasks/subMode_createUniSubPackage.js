@@ -20,7 +20,8 @@ const {
     wxResourceAlias,
     currentNamespace,
     mpTypeNamespace,
-    pluginProcessFileTypes
+    pluginProcessFileTypes,
+    sourceCodePath
 } = require('../preset')
 const platform = process.env.PACK_TYPE
 const {writeLastLine, getLevel, getLevelPath, deepFind} = require('../utils')
@@ -159,7 +160,7 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe(filterMain.restore)
         .pipe(filterJs)
         .pipe($.replace(/^/, function (match) {
-            if (fs.existsSync(path.resolve(cwd, 'src', this.file.relative))) {
+            if (fs.existsSync(path.resolve(cwd, sourceCodePath, this.file.relative))) {
                 return match
             }
             let packagePath = getLevelPath(getLevel(this.file.relative))
@@ -171,7 +172,7 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe(filterJs.restore)
         .pipe(filterJson)
         .pipe($.replace(/[\s\S]*/, function (match) {
-            if (!fs.existsSync(path.resolve(cwd, 'src', this.file.relative.replace(/json$/,'vue'))) && !fs.existsSync(path.resolve(cwd, 'src', this.file.relative.replace(/json$/,'nvue')))){
+            if (!fs.existsSync(path.resolve(cwd, sourceCodePath, this.file.relative.replace(/json$/,'vue'))) && !fs.existsSync(path.resolve(cwd, sourceCodePath, this.file.relative.replace(/json$/,'nvue')))){
                 return match
             }
             let json = JSON.parse(this.file.contents.toString())

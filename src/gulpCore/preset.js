@@ -42,11 +42,12 @@ if (!currentNamespace) throw Error('小程序类型错')
 process.env.PACK_TYPE = program.type
 const cwd = program.scope
 const projectToSubPackageConfig = require(path.resolve(cwd,'./projectToSubPackageConfig'))
-const wxResourcePath = projectToSubPackageConfig.wxResourcePath || `src/${currentNamespace.globalObject}resource`
+const sourceCodePath = projectToSubPackageConfig.sourceCodePath || 'src'
+const wxResourcePath = projectToSubPackageConfig.wxResourcePath || `${sourceCodePath}/${currentNamespace.globalObject}resource`
 const wxResourceAlias = projectToSubPackageConfig.wxResourceAlias || `@wxResource`
 const regExpWxResources = new RegExp(`${wxResourceAlias}\\/`,'g')
 const uniRequireApiName = projectToSubPackageConfig.uniRequireApiName || '__uniRequireWx'
-const regExpUniRequire = new RegExp(`${uniRequireApiName}\\(([a-zA-Z.\\/"'@\\d]+)\\)`,'g')
+const regExpUniRequire = new RegExp(`${uniRequireApiName}\\(([a-zA-Z.\\/"'@\\d-_]+)\\)`,'g')
 const uniImportWxssApiName = projectToSubPackageConfig.uniImportWxssApiName || `__uniWxss`
 const regExpUniImportWxss = new RegExp(`(}|^|\\s|;)${uniImportWxssApiName}\\s*{([^{}]+)}`,'g')
 const configWxResourceKey = projectToSubPackageConfig.configWxResourceKey || 'wxResource'
@@ -90,5 +91,6 @@ module.exports = {
     subModePath,
     targetPath,
     packIsSubpackage,
-    mpTypeNamespace
+    mpTypeNamespace,
+    sourceCodePath
 }

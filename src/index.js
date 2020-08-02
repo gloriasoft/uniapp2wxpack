@@ -44,6 +44,10 @@
             fs.mkdirsSync(path.resolve(targetPath,projectToSubPackageConfig.mainAlipayMpPath))
             console.log('projectToSubPackageConfig.mainAlipayMpPath创建成功')
         }
+        if (projectToSubPackageConfig.mainBaiduMpPath) {
+            fs.mkdirsSync(path.resolve(targetPath,projectToSubPackageConfig.mainBaiduMpPath))
+            console.log('projectToSubPackageConfig.mainBaiduMpPath创建成功')
+        }
 
         // 使用同步进程
         const workerProcess = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', 'concurrently', 'cross-env', 'uniapp2wxpack', '-S'],{

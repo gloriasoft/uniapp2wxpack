@@ -5,8 +5,14 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
             platform: platform
         }
     }
-    if (platform === 'alipay') {
-        platform = 'top'
+    if (appMode === 'relegation' && !globalObject.onAppRoute) {
+        if (!globalObject.onAppHide || !globalObject.onAppShow) {
+            appMode = 'none'
+            console.warn('uniapp2wxpack warn: ide不支持appMode设为relegation和top，所以转为none')
+        } else {
+            appMode = 'top'
+            console.warn('uniapp2wxpack warn: ide不支持appMode设为relegation，但是支持top，所以转为top')
+        }
     }
     var packObject = globalObject.__uniapp2wxpack[packPath.replace('/', '')] = {
         '__packInit': {}
@@ -57,8 +63,11 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
         }
         lastPath = options.path;
     })
-    globalObject.onAppHide(function () {
+    globalObject.onAppHide(function (option) {
         if (appMode === 'top') {
+            if (!globalObject.getLaunchOptionsSync) {
+                return vueInit.onHide.call(vueInit, option)
+            }
             return vueInit.onHide.call(vueInit, globalObject.getLaunchOptionsSync())
         } else {
             var pages = getCurrentPages()
@@ -71,9 +80,12 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
         }
     })
 
-    globalObject.onAppShow(function () {
+    globalObject.onAppShow(function (option) {
         if (appMode === 'top' && typeof vueInit.onShow === 'function') {
-            vueInit.onShow.call(vueInit, globalObject.getLaunchOptionsSync());
+            if (!globalObject.getLaunchOptionsSync) {
+                return vueInit.onShow.call(vueInit, option);
+            }
+            return vueInit.onShow.call(vueInit, globalObject.getLaunchOptionsSync());
         }
         if (topFirst) {
             if (getApp()) {
@@ -87,7 +99,9 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
     })
 
     if (appMode==='top' && topFirst && typeof vueInit.onLaunch === 'function') {
-        vueInit.onLaunch.call(vueInit, globalObject.getLaunchOptionsSync());
+        if (globalObject.getLaunchOptionsSync) {
+            vueInit.onLaunch.call(vueInit, globalObject.getLaunchOptionsSync());
+        }
     }
 
     function intercept (params) {

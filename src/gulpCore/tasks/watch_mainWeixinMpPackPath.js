@@ -44,7 +44,7 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe($.filter(function (file) {
-            if (file.relative !== 'project.config.json' && !checkMainPackFileCanResolve(file)) return false
+            if (file.relative !== currentNamespace.projectConfig && !checkMainPackFileCanResolve(file)) return false
             if (file.event === 'unlink') {
                 try {
                     let filePath = file.path

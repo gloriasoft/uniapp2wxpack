@@ -53,6 +53,8 @@ npm run dev:mp-weixin-pack
 npm run dev:mp-toutiao-pack
 // 支付宝小程序
 npm run dev:mp-alipay-pack
+// 百度小程序
+npm run dev:mp-baidu-pack
 ````  
   
 #### 第五步  

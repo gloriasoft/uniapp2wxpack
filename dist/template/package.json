@@ -7,6 +7,8 @@
     "build:mp-toutiao-pack": "cross-env NODE_ENV=production npm run build:mp-toutiao && cross-env NODE_ENV=production uniapp2wxpack --build production --type toutiao",
     "dev:mp-toutiao-pack": "concurrently \"npm run dev:mp-toutiao\" \"cross-env NODE_ENV=development uniapp2wxpack --build development --type toutiao\"",
     "build:mp-alipay-pack": "cross-env NODE_ENV=production npm run build:mp-alipay && cross-env NODE_ENV=production uniapp2wxpack --build production --type alipay",
-    "dev:mp-alipay-pack": "concurrently \"npm run dev:mp-alipay\" \"cross-env NODE_ENV=development uniapp2wxpack --build development --type alipay\""
+    "dev:mp-alipay-pack": "concurrently \"npm run dev:mp-alipay\" \"cross-env NODE_ENV=development uniapp2wxpack --build development --type alipay\"",
+    "build:mp-baidu-pack": "cross-env NODE_ENV=production npm run build:mp-baidu && cross-env NODE_ENV=production uniapp2wxpack --build production --type alipay",
+    "dev:mp-baidu-pack": "concurrently \"npm run dev:mp-baidu\" \"cross-env NODE_ENV=development uniapp2wxpack --build development --type baidu\""
   }
 }

@@ -63,8 +63,12 @@ uniapp2wxpack --create
 + 在package.json中会生成以下命令  
 dev:mp-weixin-pack  
 dev:mp-toutiao-pack  
+dev:mp-alipay-pack  
+dev:mp-baidu-pack  
 build:mp-weixin-pack  
 build:mp-toutiao-pack  
+build:mp-alipay-pack  
+build:mp-baidu-pack  
 dev:mp-weixin-pack-plugin  
 build:mp-weixin-pack-plugin  
 

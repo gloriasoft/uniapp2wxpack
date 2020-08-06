@@ -6,7 +6,7 @@ const {writeLastLine} = require('../utils')
 const {runPlugins} = require('../plugins')
 gulp.task('watch:pluginJson', function () {
     const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
-        return `/**/*.${fileType}`
+        return `**/*.${fileType}`
     }), {restore: true})
     return gulp.src(sourceCodePath + '/plugin.json', {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch(sourceCodePath + '/plugin.json', {cwd}, function (event) {

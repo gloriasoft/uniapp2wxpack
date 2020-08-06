@@ -6,7 +6,7 @@ const mergeToTargetJson = require('../mergeToTargetJson')
 const {runPlugins} = require('../plugins')
 gulp.task('watch:pagesJson', function () {
     const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
-        return `/**/*.${fileType}`
+        return `**/*.${fileType}`
     }), {restore: true})
     return gulp.src(sourceCodePath + '/pages.json', {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch(sourceCodePath + '/pages.json', {cwd}, function (event) {

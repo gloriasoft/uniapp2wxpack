@@ -213,6 +213,8 @@ module.exports={
     mainBaiduMpPath: 'mainBaiduMp',
     // uni项目输出的分包在原生小程序中的路径
     subPackagePath: 'uniSubpackage',
+    // project.config.json存放的目录，默认为null，会从原生小程序根目录查找，如果没有找整个项目根目录
+    projectConfigPath: null,
     // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
     // 如果ide不支持relegation，插件会转为top或者none，会在ide中发起警告提示
     appMode: 'relegation',

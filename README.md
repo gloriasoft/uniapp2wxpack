@@ -213,6 +213,8 @@ module.exports={
     mainBaiduMpPath: 'mainBaiduMp',
     // uni项目输出的分包在原生小程序中的路径
     subPackagePath: 'uniSubpackage',
+    // project.config.json存放的目录，默认为null，会从原生小程序根目录查找，如果没有找整个项目根目录
+    projectConfigPath: null,
     // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
     // 如果ide不支持relegation，插件会转为top或者none，会在ide中发起警告提示
     appMode: 'relegation',
@@ -443,7 +445,7 @@ mainWeixinMp/app.json中的分包配置
 ````
 ### 混写说明  
 从3.2.0版本开始支持混写功能，无论是原生小程序文件还是uni-app的文件都可以直接使用某一端的全局对象来和相关html和css的自有文件，插件会统一转换成目标端的规范。在projectToSubPackageConfig.js中，可以将各不同端的原生资源目录设置成同一个，放心的交给插件来处理，可能会有一些特殊段api不兼容的情况，在原生代码中可以通过条件编译来做一些不同平台的条件判断。  
-**(系统默认全局对个小程序平台的全局对象和文件后缀名进行混写，其他更多的混写需要在插件中配置)**  
+**(系统默认全局对个小程序平台文件后缀名进行混写，其他更多的混写需要在插件中配置)**  
   
 例如，我们将微信原生目录(mainWeixinMpPath)和头条原生目录(mainToutiaoMpPath)设置成一个allNativeMp，将原生原生资源和头条原生资源的对应动态目录(wxResourcePath)也设置成一个常量src/allresource，可以任意混写不同端的代码。最后配置插件，开启更高级的混写，混写只能对不是太复杂的页面进行处理，复杂业务的页面混写处理后可能还是有有问题，需要手动通过条件编译进行修复  
 projectToSubPackageConfig.js
@@ -479,6 +481,7 @@ module.exports={
         'jsPreProcessPlugin', // js条件编译
         'cssPreProcessPlugin', // css条件编译
         'htmlPreProcessPlugin', // html条件编译
+        'jsMixinPlugin', // js混写
         'polyfillPlugin', // 对一些js方法的polyfill
         'htmlMixinPlugin', // html混写
         'cssMixinPlugin' // css混写
@@ -496,7 +499,7 @@ export default {
         jump () {
             // 使用了微信小程序的原生对象
             wx.navigateTo({
-                '/pages/test/test'
+                url: '/pages/test/test'
             })
         }
     }
@@ -524,6 +527,7 @@ module.exports = {
          'jsPreProcessPlugin', // js条件编译
          'cssPreProcessPlugin', // css条件编译
          'htmlPreProcessPlugin', // html条件编译
+         'jsMixinPlugin', // js混写
          'polyfillPlugin', // 对一些js方法的polyfill
          'htmlMixinPlugin', // html混写
          'cssMixinPlugin' // css混写

@@ -56,6 +56,7 @@ const uniImportWxssApiName = projectToSubPackageConfig.uniImportWxssApiName || `
 const regExpUniImportWxss = new RegExp(`(}|^|\\s|;)${uniImportWxssApiName}\\s*{([^{}]+)}`,'g')
 const configWxResourceKey = projectToSubPackageConfig.configWxResourceKey || 'wxResource'
 const pluginProcessFileTypes = projectToSubPackageConfig.pluginProcessFileTypes || ['js', 'json', 'wxml', 'ttml', 'ttss', 'swan', 'css', 'html', 'wxss', 'htm', 'wxs', 'sjs', 'acss', 'axml']
+const projectConfigPath = projectToSubPackageConfig.projectConfigPath || ''
 
 let env = 'dev'
 if(process.env.NODE_ENV === 'production'){
@@ -96,5 +97,6 @@ module.exports = {
     targetPath,
     packIsSubpackage,
     mpTypeNamespace,
-    sourceCodePath
+    sourceCodePath,
+    projectConfigPath
 }

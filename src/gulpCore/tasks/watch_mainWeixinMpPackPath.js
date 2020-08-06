@@ -5,7 +5,6 @@ const path = require('path')
 const fs = require('fs-extra')
 const {cwd, target, env, projectToSubPackageConfig, base, wxResourcePath, currentNamespace, mpTypeNamespace, pluginProcessFileTypes} = require('../preset')
 const {writeLastLine} = require('../utils')
-const {mixinsEnvCode} = require('../mixinAllEnv')
 const {runPlugins} = require('../plugins')
 function checkMainPackFileCanResolve (file) {
     const mainPath = projectToSubPackageConfig[currentNamespace.mainMpPath] + '/' + projectToSubPackageConfig.subPackagePath
@@ -72,14 +71,6 @@ gulp.task('watch:mainWeixinMpPackPath', function () {
             path.extname = '.' + currentNamespace.css
         }))
         .pipe(filterAllCss.restore)
-        .pipe(filterAllJs)
-        .pipe($.replace(/[\s\S]*/, function (match) {
-            const injectCode = mixinsEnvCode(match)
-            return injectCode + match
-        }, {
-            skipBinary: false
-        }))
-        .pipe(filterAllJs.restore)
         .pipe(filterPluginsFiles)
         .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, packTarget)), {
             skipBinary: false

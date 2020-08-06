@@ -9,8 +9,10 @@ module.exports={
     mainBaiduMpPath: 'mainBaiduMp',
     // uni项目输出的分包在原生小程序中的路径
     subPackagePath: 'uniSubpackage',
+    // project.config.json存放的目录，默认为null，会从原生小程序根目录查找，如果没有找整个项目根目录
+    projectConfigPath: null,
     // uni项目的App.vue中初始设置的处理方式，默认是relegation(降级模式)，[top(顶级模式) / none(丢弃)]
-    // 支付宝不支持relegation，转为top
+    // 如果ide不支持relegation，插件会转为top或者none，会在ide中发起警告提示
     appMode: 'relegation',
     // 如果原生小程序目录中的目录名称合uni项目输出的目录名相同，是否融合处理，默认不融合处理，直接忽略原生小程序里的目录，merge以uni项目优先
     mergePack: false,

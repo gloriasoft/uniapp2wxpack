@@ -1,14 +1,14 @@
 const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
-const {cwd, target, env, targetPath, pluginProcessFileTypes, currentNamespace} = require('../preset')
+const {cwd, target, env, targetPath, pluginProcessFileTypes, currentNamespace, projectConfigPath} = require('../preset')
 const {writeLastLine} = require('../utils')
 const {runPlugins} = require('../plugins')
 gulp.task('watch:projectConfigJson', function () {
     const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
-        return `/**/*.${fileType}`
+        return `**/*.${fileType}`
     }), {restore: true})
-    return gulp.src(currentNamespace.projectConfig, {allowEmpty: true, cwd})
-        .pipe($.if(env === 'dev', $.watch(currentNamespace.projectConfig, {cwd}, function (event) {
+    return gulp.src(`${projectConfigPath ? projectConfigPath + '/' : ''}${currentNamespace.projectConfig}`, {allowEmpty: true, cwd})
+        .pipe($.if(env === 'dev', $.watch(`${projectConfigPath ? projectConfigPath + '/' : ''}${currentNamespace.projectConfig}`, {cwd}, function (event) {
             // console.log('处理'+event.path)
             writeLastLine('处理' + event.relative + '......')
         })))

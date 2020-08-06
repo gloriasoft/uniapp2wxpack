@@ -13,7 +13,6 @@ const {
     pluginProcessFileTypes
 } = require('../preset')
 const {writeLastLine} = require('../utils')
-const {mixinsEnvCode} = require('../mixinAllEnv')
 const {runPlugins} = require('../plugins')
 gulp.task('watch:native', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
@@ -57,14 +56,6 @@ gulp.task('watch:native', function () {
                 return true
             }
         }))
-        .pipe(filterAllJs)
-        .pipe($.replace(/[\s\S]*/, function (match) {
-            const injectCode = mixinsEnvCode(match)
-            return injectCode + match
-        }, {
-            skipBinary: false
-        }))
-        .pipe(filterAllJs.restore)
         .pipe(filterAllHtml)
         .pipe($.rename(function (path) {
             path.extname = '.' + currentNamespace.html

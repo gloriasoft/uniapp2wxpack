@@ -17,7 +17,6 @@ const {
     pluginProcessFileTypes
 } = require('../preset')
 const {writeLastLine} = require('../utils')
-const {mixinsEnvCode} = require('../mixinAllEnv')
 const {runPlugins} = require('../plugins')
 gulp.task('watch:mainWeixinMp', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
@@ -72,27 +71,25 @@ gulp.task('watch:mainWeixinMp', function () {
                 return true
             }
         }))
-        .pipe(filterAllJs)
-        .pipe($.replace(/[\s\S]*/, function (match) {
-            const injectCode = mixinsEnvCode(match)
-            return injectCode + match
-        }, {
-            skipBinary: false
-        }))
-        .pipe(filterAllJs.restore)
         .pipe(filterAppJs)
-        .pipe($.replace(/^/, function (match) {
-            if (packIsSubpackage.mode || program.plugin) return ''
+        .pipe($.replace(/[\s\S]*/, function (content) {
+            if (packIsSubpackage.mode || program.plugin) return content
             let packagePath = `./${projectToSubPackageConfig.subPackagePath}/`
 
             // 如果uniSubpackagePath是空或者根
             if (subModePath === targetPath) {
                 // 获取uni的app.js的内容
                 const uniAppJsContent = fs.readFileSync(basePath + '/app.js', 'utf8')
-                return `${uniAppJsContent};\n`
+                if (content.match(new RegExp(uniAppJsContent.replace(/\./g, '\\.').replace(/\(/g, '\\(').replace(/\)/g, '\\)')))) {
+                    return content
+                }
+                return `${uniAppJsContent};\n${content}`
             }
 
-            return `require('${packagePath}app.js');\n`
+            if (content.match(new RegExp(`require\\('${packagePath.replace(/\./g, '\\.')}app.js'\\)`))) {
+                return content
+            }
+            return `require('${packagePath}app.js');\n${content}`
         }, {
             skipBinary:false
         }))

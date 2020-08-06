@@ -25,7 +25,6 @@ const {
 } = require('../preset')
 const platform = process.env.PACK_TYPE
 const {writeLastLine, getLevel, getLevelPath, deepFind} = require('../utils')
-const {mixinsEnvCode} = require('../mixinAllEnv')
 const {uniRequireWxResource} = require('../uniRequire')
 const {runPlugins} = require('../plugins')
 const cssArr = Object.keys(mpTypeNamespace).map((key) => {
@@ -139,12 +138,6 @@ gulp.task('subMode:createUniSubPackage', function(){
         .pipe(filterAllJs)
         .pipe(strip())
         .pipe(uniRequireWxResource())
-        .pipe($.replace(/[\s\S]*/, function (match) {
-            const injectCode = mixinsEnvCode(match)
-            return injectCode + match
-        }, {
-            skipBinary: false
-        }))
         .pipe(filterAllJs.restore)
         .pipe(filterMain)
         .pipe($.replace(/^/, function (match) {

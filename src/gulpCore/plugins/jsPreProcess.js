@@ -1,7 +1,7 @@
 // 针对原生小程序js的条件编译
 const {preprocess} = require('preprocess')
 function jsPreProcessPlugin (content, {relative}) {
-    if (relative.match(/.js$/i)) {
+    if (relative.match(/\.js$/i)) {
         try {
             return preprocess(content, process.env, {
                 type: 'js'

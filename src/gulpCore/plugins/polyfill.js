@@ -11,7 +11,7 @@ if (!Promise.prototype.finally) {
 `
 
 function polyfillPlugin (content, {relative}) {
-    if (process.env.PACK_TYPE === 'toutiao' && relative.match(/^\/app.js$/i)) {
+    if (process.env.PACK_TYPE === 'toutiao' && relative.match(/^\/app\.js$/i)) {
         return `${promiseFinallyInject};\n${content}`
     }
     return content

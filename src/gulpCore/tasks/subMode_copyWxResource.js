@@ -17,7 +17,6 @@ const {
     pluginProcessFileTypes
 } = require('../preset')
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
-const {mixinsEnvCode} = require('../mixinAllEnv')
 const {uniRequireWxResource} = require('../uniRequire')
 const {runPlugins} = require('../plugins')
 const cssArr = []
@@ -52,12 +51,6 @@ gulp.task('subMode:copyWxResource', function () {
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe(filterJs)
-        .pipe($.replace(/[\s\S]*/, function (match) {
-            const injectCode = mixinsEnvCode(match)
-            return injectCode + match
-        }, {
-            skipBinary: false
-        }))
         .pipe($.replace(/^/, function (match) {
             let packagePath = getLevelPath(getLevel(this.file.relative))
             return `require('${packagePath}app.js');\n`

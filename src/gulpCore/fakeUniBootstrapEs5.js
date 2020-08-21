@@ -5,15 +5,17 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
             platform: platform
         }
     }
-    if (appMode === 'relegation' && !globalObject.onAppRoute) {
-        if (!globalObject.onAppHide || !globalObject.onAppShow) {
-            appMode = 'none'
-            console.warn('uniapp2wxpack warn: ide不支持appMode设为relegation和top，所以转为none')
-        } else {
-            appMode = 'top'
-            console.warn('uniapp2wxpack warn: ide不支持appMode设为relegation，但是支持top，所以转为top')
-        }
+
+    if (!globalObject.onAppHide || !globalObject.onAppShow) {
+        appMode = 'none'
+        console.warn('uniapp2wxpack warn: ide不支持appMode设为relegation和top，所以转为none')
     }
+
+    if (appMode === 'relegation' && !globalObject.onAppRoute) {
+        appMode = 'top'
+        console.warn('uniapp2wxpack warn: ide不支持appMode设为relegation，但是支持top，所以转为top')
+    }
+
     var packObject = globalObject.__uniapp2wxpack[packPath.replace('/', '')] = {
         '__packInit': {}
     };

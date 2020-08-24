@@ -83,12 +83,6 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
     })
 
     globalObject.onAppShow(function (option) {
-        if (appMode === 'top' && typeof vueInit.onShow === 'function') {
-            if (!globalObject.getLaunchOptionsSync) {
-                return vueInit.onShow.call(vueInit, option);
-            }
-            return vueInit.onShow.call(vueInit, globalObject.getLaunchOptionsSync());
-        }
         if (topFirst) {
             if (getApp()) {
                 if (!getApp().globalData) {
@@ -96,8 +90,14 @@ function fakeUniBootstrap (vueInit, packPath , appMode, platform) {
                 }
                 Object.assign(getApp().globalData,vueInit.globalData || {})
             }
+            topFirst = 0;
         }
-        topFirst = 0;
+        if (appMode === 'top' && typeof vueInit.onShow === 'function') {
+            if (!globalObject.getLaunchOptionsSync) {
+                return vueInit.onShow.call(vueInit, option);
+            }
+            return vueInit.onShow.call(vueInit, globalObject.getLaunchOptionsSync());
+        }
     })
 
     if (appMode==='top' && topFirst && typeof vueInit.onLaunch === 'function') {

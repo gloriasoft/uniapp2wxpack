@@ -21,7 +21,8 @@ const {
     currentNamespace,
     mpTypeNamespace,
     pluginProcessFileTypes,
-    sourceCodePath
+    sourceCodePath,
+    projectToSubPackageConfig,
 } = require('../preset')
 const platform = process.env.PACK_TYPE
 const {writeLastLine, getLevel, getLevelPath, deepFind} = require('../utils')
@@ -39,6 +40,16 @@ function checkBaseAppJsIsTopAppJs (file) {
     const topAppWxssPath = path.resolve(targetPath, `app.${currentNamespace.css}`)
     const currentFilePath = file.path.replace(basePath, subModePath)
     return topAppJsPath === currentFilePath || topAppWxssPath === currentFilePath
+}
+
+// 如果是极端混合模式，exj.json和projectJson以原生小程序目录为主
+function checkExtremeMergeModeFilterFiles (file) {
+    if (['ext.json', currentNamespace.projectConfig].indexOf(file.relative) < 0) return false
+    if (projectToSubPackageConfig.mergePack && projectToSubPackageConfig.subPackagePath === '') {
+        const mainPath = projectToSubPackageConfig[currentNamespace.mainMpPath]
+        if (fs.existsSync(path.resolve(cwd, mainPath, file.relative))) return true
+    }
+    return false
 }
 
 gulp.task('subMode:createUniSubPackage', function(){
@@ -71,16 +82,17 @@ gulp.task('subMode:createUniSubPackage', function(){
 
     return gulp.src([
         base + '/**',
-        '!' + base + '/*.*',
+        '!' + base + '/app.json',
         base + '/app.js',
         `${base}/app.${currentNamespace.css}`
     ], {allowEmpty: true, cwd})
-        .pipe($.if(env === 'dev', $.watch([base + '/**/*', '!/' + base + '/*.json'],{cwd}, function (event) {
+        .pipe($.if(env === 'dev', $.watch([base + '/**/*', '!/' + base + '/app.json'],{cwd}, function (event) {
             // console.log('处理'+event.path)
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe($.filter(function (file) {
             if (checkBaseAppJsIsTopAppJs(file)) return false
+            if (checkExtremeMergeModeFilterFiles(file)) return false
             if (file.event === 'unlink') {
                 try {
                     let filePath = file.path

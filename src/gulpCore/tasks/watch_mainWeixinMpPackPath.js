@@ -9,10 +9,13 @@ const {runPlugins} = require('../plugins')
 function checkMainPackFileCanResolve (file) {
     const mainPath = projectToSubPackageConfig[currentNamespace.mainMpPath] + '/' + projectToSubPackageConfig.subPackagePath
     // 先判断base里是否有文件
-    if (fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, base)))) return false
+    if (fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, base)))) {
+        return ['ext.json', currentNamespace.projectConfig].indexOf(file.relative) > -1 && projectToSubPackageConfig.mergePack && projectToSubPackageConfig.subPackagePath === '';
+    }
     // 在判断wxresource里是否有文件
     return !fs.existsSync(file.path.replace(path.resolve(cwd, mainPath), path.resolve(cwd, wxResourcePath)));
 }
+
 gulp.task('watch:mainWeixinMpPackPath', function () {
     const base = projectToSubPackageConfig[currentNamespace.mainMpPath]
     const basePackPath = base + '/' + projectToSubPackageConfig.subPackagePath

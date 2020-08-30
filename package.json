@@ -1,6 +1,6 @@
 {
   "name": "uniapp2wxpack",
-  "version": "3.3.17",
+  "version": "3.3.18",
   "description": "",
   "main": "./dist/lib/index.js",
   "scripts": {
@@ -21,6 +21,7 @@
   "author": "Devle Wu（天堂里的花大咩）",
   "license": "ISC",
   "dependencies": {
+    "chokidar": "^3.4.2",
     "commander": "^5.0.0",
     "concurrently": "^4.1.2",
     "cross-env": "^5.2.0",

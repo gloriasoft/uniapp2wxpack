@@ -48,7 +48,7 @@ const shared = {
       }
     })
   ],
-  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log', 'postcss-comment', 'htmlparser2', 'preprocess', 'vue-template-compiler'],
+  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log', 'postcss-comment', 'htmlparser2', 'preprocess', 'vue-template-compiler', 'chokidar'],
 }
 
 export default [

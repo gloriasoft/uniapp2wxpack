@@ -1,5 +1,7 @@
 const fs = require('fs-extra')
 const path = require('path')
+const Vinyl = require('vinyl')
+const {runPlugins} = require('./plugins')
 const {
     program,
     cwd,
@@ -8,7 +10,8 @@ const {
     subModePath,
     targetPath,
     packIsSubpackage,
-    currentNamespace
+    currentNamespace,
+    target
 } = require('./preset')
 
 function forceUpdateAppJs () {
@@ -27,7 +30,16 @@ function forceUpdateAppJs () {
             insertJs = `${uniAppJsContent};\n`
         }
         if (packIsSubpackage.mode || program.plugin) insertJs = ''
-        fs.outputFileSync(targetPath + '/app.js', insertJs + appJs)
+        // 创建一个vinyl，用于给插件消费
+        const appJsVinyl = new Vinyl({
+            cwd,
+            base: path.resolve(cwd,projectToSubPackageConfig[currentNamespace.mainMpPath]),
+            path: appJsPath,
+            // contents: new Buffer(insertJs + appJs)
+        });
+        fs.outputFileSync(targetPath + '/' + appJsVinyl.relative, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))).call({
+            file: appJsVinyl
+        }, insertJs + appJs))
     }
 }
 

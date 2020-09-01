@@ -112,7 +112,7 @@ function mergeToTargetJson (type) {
                     })
                 }
                 pack.pages = tempAppSubPackgages
-                forceUpdateAppJs()
+                forceUpdateAppJs.call(this)
                 // 删除pages和subPackages之后合并其他的属性
                 delete appJson.pages
                 delete appJson.subPackages
@@ -220,7 +220,7 @@ function mergeToTargetJson (type) {
             }
         }
 
-        forceUpdateAppJs()
+        forceUpdateAppJs.call(this)
         // 头条没有分包，将分包处理成pages
         if (program.type === 'toutiao' && targetJson.subPackages) {
             targetJson.subPackages.forEach((pack) => {

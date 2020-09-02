@@ -81,7 +81,7 @@ function mergeToTargetJson (type) {
             })
             if (pack) {
                 packIsSubpackage.mode = true
-                // 要将uni项目里所有的pages和subPackages里的pages合并到主小程序uni分布设置的subPackages的pages里
+                // 要将uni项目里所有的pages和subPackages里的pages合并到主小程序uni分包设置的subPackages的pages里
                 let tempAppSubPackgages = [
                     // pages直接使用
                     ...config[configWxResourceKey] && config[configWxResourceKey].pages || [],
@@ -177,7 +177,7 @@ function mergeToTargetJson (type) {
         ))
 
         // check subPackages from config & appJson
-        let uniSubPackages = [], uniSubPackagesMap = {}
+        let uniSubPackages = [], uniSubPackagesMap = {}, subPackagesNameMap = {}
         function checkValidSubPackages(subPackages) {
             subPackages.forEach((sub) => {
                 if (!uniSubPackagesMap[sub.root]) {
@@ -189,6 +189,9 @@ function mergeToTargetJson (type) {
                         ...sub.pages
                     ]))
                 }
+                if (sub.name) {
+                    subPackagesNameMap[sub.root] = sub.name
+                }
             })
         }
 
@@ -196,12 +199,15 @@ function mergeToTargetJson (type) {
         checkValidSubPackages(config[configWxResourceKey] && config[configWxResourceKey].subPackages || [])
         checkValidSubPackages(appJson.subPackages || [])
         checkValidSubPackages(mainJson.subPackages || [])
-
         for (let i in uniSubPackagesMap) {
-            uniSubPackages.push({
+            const subPackage = {
                 root: i,
                 pages: uniSubPackagesMap[i]
-            })
+            }
+            if (subPackagesNameMap[i]) {
+                subPackage.name = subPackagesNameMap[i]
+            }
+            uniSubPackages.push(subPackage)
         }
 
         // merge subPackages

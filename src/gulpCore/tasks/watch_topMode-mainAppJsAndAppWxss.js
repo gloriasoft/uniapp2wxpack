@@ -22,8 +22,7 @@ gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
         })))
         .pipe(filterAppJs)
         .pipe($.replace(/^/, function (match) {
-            const uniAppJsContent = fs.readFileSync(basePath + '/app.js', 'utf8')
-            return `${uniAppJsContent};\n`
+            return `require('./uni-bootstrap.js');\n`
         }, {
             skipBinary: false
         }))

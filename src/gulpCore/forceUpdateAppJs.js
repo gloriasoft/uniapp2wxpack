@@ -22,13 +22,11 @@ function forceUpdateAppJs () {
     if(fs.existsSync(appJsPath)){
         const appJs = fs.readFileSync(appJsPath,'utf8')
         let packagePath=`./${projectToSubPackageConfig.subPackagePath}/`
-        let insertJs = `require('${packagePath}app.js');\n`
-        // 如果uniSubpackagePath是空或者根
+        let bootStrapJs = 'app.js'
         if (subModePath === targetPath) {
-            // 获取uni的app.js的内容
-            const uniAppJsContent = fs.readFileSync(basePath + '/app.js', 'utf8')
-            insertJs = `${uniAppJsContent};\n`
+            bootStrapJs = 'uni-bootstrap.js'
         }
+        let insertJs = `require('${packagePath}${bootStrapJs}');\n`
         if (packIsSubpackage.mode || program.plugin) insertJs = ''
         // 创建一个vinyl，用于给插件消费
         const appJsVinyl = new Vinyl({

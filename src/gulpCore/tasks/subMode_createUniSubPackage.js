@@ -6,6 +6,7 @@ const nodeAst = require('../nodeAst')
 const path =require('path')
 const strip = require('gulp-strip-comments')
 const {fakeUniBootstrapName, fakeUniBootstrap} = require('../fakeUniBootstrapEs5')
+const checkBaseAppJsIsTopAppJs = require('../checkBaseAppJsIsTopAppJs')
 const {
     cwd,
     env,
@@ -34,14 +35,6 @@ const cssArr = Object.keys(mpTypeNamespace).map((key) => {
 const cssSet = new Set(cssArr)
 const injectAppCss = require('../injectAppCss')
 
-// 如果uni的app.js和原生的app.js是同一个路径
-function checkBaseAppJsIsTopAppJs (file) {
-    const topAppJsPath = path.resolve(targetPath, 'app.js')
-    const topAppWxssPath = path.resolve(targetPath, `app.${currentNamespace.css}`)
-    const currentFilePath = file.path.replace(basePath, subModePath)
-    return topAppJsPath === currentFilePath || topAppWxssPath === currentFilePath
-}
-
 // 如果是极端混合模式，exj.json和projectJson以原生小程序目录为主
 function checkExtremeMergeModeFilterFiles (file) {
     if (['ext.json', currentNamespace.projectConfig].indexOf(file.relative) < 0) return false
@@ -63,6 +56,7 @@ gulp.task('subMode:createUniSubPackage', function(){
     const filterJs = $.filter([
         base + '/**/*.js',
         '!' + base + '/app.js',
+        '!' + base + '/uni-bootstrap.js',
         '!' + base + '/common/vendor.js',
         '!' + base + '/common/main.js',
         '!' + base + '/common/runtime.js'
@@ -91,7 +85,6 @@ gulp.task('subMode:createUniSubPackage', function(){
             writeLastLine('处理' + event.relative + '......')
         })))
         .pipe($.filter(function (file) {
-            if (checkBaseAppJsIsTopAppJs(file)) return false
             if (checkExtremeMergeModeFilterFiles(file)) return false
             if (file.event === 'unlink') {
                 try {
@@ -104,6 +97,13 @@ gulp.task('subMode:createUniSubPackage', function(){
                 } catch (e) {}
                 return false
             } else {
+                if (checkBaseAppJsIsTopAppJs(file)) {
+                    if (file.extname === '.js') {
+                        file.basename = 'uni-bootstrap.js'
+                        return true
+                    }
+                    return false
+                }
                 return true
             }
         }))
@@ -169,8 +169,11 @@ gulp.task('subMode:createUniSubPackage', function(){
                 return match
             }
             let packagePath = getLevelPath(getLevel(this.file.relative))
-
-            return `require('${packagePath}app.js');\n`
+            let bootStrapJs = 'app.js'
+            if (subModePath === targetPath) {
+                bootStrapJs = 'uni-bootstrap.js'
+            }
+            return `require('${packagePath}${bootStrapJs}');\n`
         }, {
             skipBinary: false
         }))

@@ -75,21 +75,15 @@ gulp.task('watch:mainWeixinMp', function () {
         .pipe($.replace(/[\s\S]*/, function (content) {
             if (packIsSubpackage.mode || program.plugin) return content
             let packagePath = `./${projectToSubPackageConfig.subPackagePath}/`
-
-            // 如果uniSubpackagePath是空或者根
+            let bootStrapJs = 'app.js'
             if (subModePath === targetPath) {
-                // 获取uni的app.js的内容
-                const uniAppJsContent = fs.readFileSync(basePath + '/app.js', 'utf8')
-                if (content.match(new RegExp(uniAppJsContent.replace(/\./g, '\\.').replace(/\(/g, '\\(').replace(/\)/g, '\\)')))) {
-                    return content
-                }
-                return `${uniAppJsContent};\n${content}`
+                bootStrapJs = 'uni-bootstrap.js'
             }
 
             if (content.match(new RegExp(`require\\('${packagePath.replace(/\./g, '\\.')}app.js'\\)`))) {
                 return content
             }
-            return `require('${packagePath}app.js');\n${content}`
+            return `require('${packagePath}${bootStrapJs}');\n${content}`
         }, {
             skipBinary:false
         }))

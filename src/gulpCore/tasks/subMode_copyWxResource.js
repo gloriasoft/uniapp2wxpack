@@ -53,7 +53,11 @@ gulp.task('subMode:copyWxResource', function () {
         .pipe(filterJs)
         .pipe($.replace(/^/, function (match) {
             let packagePath = getLevelPath(getLevel(this.file.relative))
-            return `require('${packagePath}app.js');\n`
+            let bootStrapJs = 'app.js'
+            if (subModePath === targetPath) {
+                bootStrapJs = 'uni-bootstrap.js'
+            }
+            return `require('${packagePath}${bootStrapJs}');\n`
         }, {
             skipBinary: false
         }))

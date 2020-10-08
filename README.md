@@ -287,6 +287,13 @@ const nativeResource = __uniRequireWx('@wxResource/nativeJs/test')
 const nativeExportDefaultObject = __uniRequireWx('@wxResource/nativeJs/test1').defaut
 const {nativeRestObject} =  __uniRequireWx('@wxResource/nativeJs/test')
 ````  
+如果在typescript项目中，建议在项目的main.ts文件中声明__uniRequireWx为全局变量，例如：  
+```typescript
+declare global {
+    const __uniRequireWx: any;
+}
+```
+
 + __uniWxss (所有小程序也通用)  
 只支持静态字符串参数  
 在uni-app项目的源码目录中的vue、scss、less文件中引入原生的微信小程序wxss、ttss资源(类似@import 'xxxxxx'),往往会配合目录别名@wxResource  

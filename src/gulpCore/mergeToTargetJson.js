@@ -75,6 +75,10 @@ function mergeToTargetJson (type) {
         }
 
         // 判断主小程序的AppJson中是否把uni项目设为了分包
+        // 兼容全小写的subpackages（微信官方文档改为了全小写）
+        if (mainJson.subpackages && !mainJson.subPackages) {
+            mainJson.subPackages = mainJson.subpackages
+        }
         if (mainJson.subPackages) {
             let pack = mainJson.subPackages.find((pack) => {
                 return pack.root === projectToSubPackageConfig.subPackagePath

@@ -697,5 +697,22 @@ __uniRequireWx('@wxResource/../static/test.wxs')
 ### 路径问题  
 **uni项目中如果使用了绝对路径，在解耦构建的项目中，根路径是指向了主小程序的根的，所以需要自行拼接上uni解耦包的目录名，推荐使用pack.config.js中的packPath动态获取拼接**  
   
+### 与其他webpack打包后的文件进行混合时  
+此情况一般出现在将uni项目打包后作为一个目录混合进其他小程序开发框架中，由于一些小程序开发框架也是使用webpack进行打包，会导致webpack的全局队列对象名称相互污染（默认是`global["webpackJsonp"]`），造成加载模块出现错误，所以建议此种情需要对作为目录的uni项目的`vue.config.js`进行配置，添加`output.library`  
+```javascript
+// vue.config.js
+const webpack = require('webpack')
+// 获取uniapp2wxpack的配置文件projectToSubPackageConfig.js的内容
+const projectToSubPackageConfig = require('./projectToSubPackageConfig')
+module.exports = {
+    configureWebpack: {
+        output: {
+            // 也可以手动设置一个自己命名的常量
+            library: projectToSubPackageConfig.subPackagePath
+        }
+    }
+}
+```  
+这样设置后，uni项目打包出来的文件的webpack全局队列对象名称将被修改成`global["webpackJsonp" + output.library]`，这样就避免了对象名称污染的情况  
 ### 其他  
 如果原生主小程序目录中已经存在了同uni解耦包命名相同的目录，在构建时，这个目录将被忽略，构建后的项目中的此目录是uni项目生成的解耦包

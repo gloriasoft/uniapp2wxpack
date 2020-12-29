@@ -14,7 +14,8 @@ const {
     wxResourcePath,
     currentNamespace,
     mpTypeNamespace,
-    pluginProcessFileTypes
+    pluginProcessFileTypes,
+    projectToSubPackageConfig
 } = require('../preset')
 const {writeLastLine, getLevel, getLevelPath} = require('../utils')
 const {uniRequireWxResource} = require('../uniRequire')
@@ -35,16 +36,18 @@ Object.keys(mpTypeNamespace).forEach((key) => {
 })
 
 gulp.task('subMode:copyWxResource', function () {
+    const nativePath = projectToSubPackageConfig[currentNamespace.mainMpPath]
     const filterJs = $.filter([wxResourcePath + '/**/*.js'], {restore: true})
     const filterWxss = $.filter([...cssPathArr], {restore: true})
     const filterHtml = $.filter([...htmlPathArr], {restore: true})
     const filterPluginsFiles = $.filter(pluginProcessFileTypes.map((fileType) => {
         return `${wxResourcePath}/**/*${fileType}`
     }), {restore: true})
-    return gulp.src([wxResourcePath + '/**', wxResourcePath], {allowEmpty: true, cwd})
+    return gulp.src([wxResourcePath + '/**', wxResourcePath, `!${nativePath}/app.json`], {allowEmpty: true, cwd})
         .pipe($.if(env === 'dev', $.watch([
             wxResourcePath + '/**',
             wxResourcePath,
+            `!/${nativePath}/app.json`,
             `!/${wxResourcePath}/**/*.*___jb_tmp___`
         ], {cwd}, function (event) {
             // console.log('处理'+event.path)

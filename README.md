@@ -354,11 +354,12 @@ uni-app源码中要使用的原生页面及资源存放的目录（并非原生�
 
 **注意：如果要手动通过wx.__uniapp2wxpack触发App的钩子，需要首先确保触发onLaunch，否则App的onShow和onHide不会有效**  
 ## API  
-+ wx.__uniapp2wxpack  
+### wx.__uniapp2wxpack  
 用于存放解耦包相关方法和数据的对象，在引入解耦包的`app.js`后，通过获取`wx.__uniapp2wxpack.uniSubpackage.__packInit`，可以拿到uni项目`App.vue`的初始化配置  
+其他平台小程序需要替换`wx`对象为其他小程序对象  
 **注意：其中uniSubpackage属性代表了解耦包的名称，名称变化，该属性也会相应的改变**
   
-+ __uniRequireWx (所有小程序也通用)  
+### __uniRequireWx (所有小程序也通用)  
 只支持静态字符串参数  
 在uni-app项目的源码目录中的vue、js文件需要引入原生的微信小程序资源（除了uni-app自带的`wxcomponents`目录外）都需要使用`__uniRequireWx`方法(类似node的require)，并且往往会配合目录别名`@wxResource`
 ````javascript
@@ -373,7 +374,7 @@ declare global {
 }
 ```
 
-+ __uniWxss (所有小程序也通用)  
+### __uniWxss (所有小程序也通用)  
 只支持静态字符串参数  
 在uni-app项目的源码目录中的vue、scss、less文件中引入原生的微信小程序wxss、ttss资源(类似`@import 'xxxxxx'`),往往会配合目录别名`@wxResource`  
 ````css

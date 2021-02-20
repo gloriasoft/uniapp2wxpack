@@ -1,4 +1,5 @@
-// 解决多个uni解耦目录在同一个项目中时出现异常，问题原因是webpack的队列为全局统一，导致出错，需要做拆队列处理
+// 修改webpack依赖队列的对象名，用于避免与其他webpack打包的项目混合时可能产生的加载冲突
+// 此插件可代替webpack的library配置
 const {projectToSubPackageConfig, basePath} = require('../preset')
 const shortHash = require('shorthash2')
 const detectGlobal = require('acorn-globals')

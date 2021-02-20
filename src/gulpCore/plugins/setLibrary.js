@@ -40,7 +40,8 @@ function setLibrary (content, {fromAbsolute}, defaultPluginMap, options = {}) {
             }
         }
         if (updated) {
-            return escodegen.generate(ast)
+            const format = process.env.NODE_ENV === 'production' ? escodegen.FORMAT_MINIFY: escodegen.FORMAT_DEFAULTS
+            return escodegen.generate(ast, {format})
         }
     }
     return content

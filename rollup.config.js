@@ -39,7 +39,7 @@ const shared = {
     //     exclude: 'node_modules/**',
     // }),
     replace({
-        'process.env.BABEL_ENV': JSON.stringify('rollup')
+        'process.env.BABEL_ENV': JSON.stringify(process.env.BABEL_ENV)
     }),
     terser({
       toplevel: true,

@@ -39,5 +39,6 @@ module.exports={
         'jsPreProcessPlugin', // js条件编译
         'cssPreProcessPlugin', // css条件编译
         'htmlPreProcessPlugin', // html条件编译
+        'setLibrary', // 修改webpack依赖队列的对象名，用于避免webpack加载冲突，代替webpack的library配置
     ]
 }

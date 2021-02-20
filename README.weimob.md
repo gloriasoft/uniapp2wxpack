@@ -4,8 +4,6 @@
 
 `微盟营销云技术部前端团队提供技术支持`   
 
-## [点击进入最新详细文档](https://github.com/devilwjp/uniapp2wxpack)  
-
 问题反馈QQ群:701697982 <a target="_blank" href="https://jq.qq.com/?_wv=1027&k=2DjrpVZL" rel="nofollow"><img src="http://pub.idqqimg.com/wpa/images/group.png" alt="uniapp2wxpack问题反馈群"></a>  
   
 ## Uni-App的小程序混合开发（解耦构建）插件  
@@ -59,6 +57,7 @@
 - [pack.config.js](#packconfigjs)
 - [混写](#%E6%B7%B7%E5%86%99)
 - [系统plugin](#%E7%B3%BB%E7%BB%9Fplugin)
+    - [关于setLibrary系统插件（3.3.25新增）](#%E5%85%B3%E4%BA%8Esetlibrary%E7%B3%BB%E7%BB%9F%E6%8F%92%E4%BB%B63325%E6%96%B0%E5%A2%9E)
 - [条件编译](#%E6%9D%A1%E4%BB%B6%E7%BC%96%E8%AF%91)
   - [jsPreProcessPlugin](#jspreprocessplugin)
   - [cssPreProcessPlugin](#csspreprocessplugin)
@@ -66,6 +65,8 @@
 - [自定义plugin](#%E8%87%AA%E5%AE%9A%E4%B9%89plugin)
 - [引入原生资源的wxs](#%E5%BC%95%E5%85%A5%E5%8E%9F%E7%94%9F%E8%B5%84%E6%BA%90%E7%9A%84wxs)
 - [与其他webpack打包后的文件进行混合时](#%E4%B8%8E%E5%85%B6%E4%BB%96webpack%E6%89%93%E5%8C%85%E5%90%8E%E7%9A%84%E6%96%87%E4%BB%B6%E8%BF%9B%E8%A1%8C%E6%B7%B7%E5%90%88%E6%97%B6)
+    - [uniapp2wxpack 版本小于3.3.25的方案](#uniapp2wxpack-%E7%89%88%E6%9C%AC%E5%B0%8F%E4%BA%8E3325%E7%9A%84%E6%96%B9%E6%A1%88)
+    - [uniapp2wxpack 版本大于等于3.3.25的方案](#uniapp2wxpack-%E7%89%88%E6%9C%AC%E5%A4%A7%E4%BA%8E%E7%AD%89%E4%BA%8E3325%E7%9A%84%E6%96%B9%E6%A1%88)
 - [其他](#%E5%85%B6%E4%BB%96)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -509,10 +510,31 @@ module.exports = {
          'jsMixinPlugin', // js混写
          'polyfillPlugin', // 对一些js方法的polyfill
          'htmlMixinPlugin', // html混写
-         'cssMixinPlugin' // css混写
+         'cssMixinPlugin', // css混写
+         'setLibrary' // 3.3.25新增，修改webpack依赖队列的对象名，用于避免与其他webpack打包的项目混合时可能产生的加载冲突
     ]
 }
 ```  
+#### 关于setLibrary系统插件（3.3.25新增）  
+修改webpack依赖队列的对象名，用于避免与其他webpack打包的项目混合时可能产生的加载冲突  
+只要设置此了插件，在编译时，会查找所有uniapp项目编译后的js文件，检测到全局对象`global["webpackJsonp"]`，会对其进行替换  
+**可以代替vue.config.js中webpack的library设置**  
+需要在`projectToSubPackageConfig.js`的`plugins`中添加`setLibrary`  
+默认的替换规则是`global[webpackJsonp_{uni打包后在主小程序中的目录}_{哈希值}]`  
+也可以自定义的替换，通过编写一个自定义的插件实现，比如：  
+```javascript
+// 编写一个自定义替换global["webpackJsonp"]的插件
+function customPlugin (content, pathObject, defaultPluginMap) {
+    const setLibraryOption = {
+        // 自定义的库民
+        library: 'webpackJsonp_xxxxxx',
+        // 自定义要替换的对象（一般不会改）
+        reference: 'webpackJsonp'
+    }
+    // 进行替换
+    return defaultPluginMap.setLibrary(content, pathObject, null, setLibraryOption)
+}
+```
 ## 条件编译  
 从3.2.1开始，提供了3个支持原生小程序代码的条件编译系统插件, 通过判断`PACK_TYPE`可以进行平台的条件判断，也可以在启动命令中加入自定义的环境变量进行判断（一切在`uniapp2wxpack`进程中的`process.env`对象中的环境变量都能被用于判断）  
 原生小程序条件编译的语法与uni-app的条件编译略有差异  
@@ -643,8 +665,10 @@ __uniRequireWx('@wxResource/../static/test.wxs')
 __uniRequireWx('@wxResource/../static/test.wxs')
 </wxs>
 ```  
-## 与其他webpack打包后的文件进行混合时  
-此情况一般出现在将uni项目打包后作为一个目录混合进其他小程序开发框架中，由于一些小程序开发框架也是使用webpack进行打包，会导致webpack的全局队列对象名称相互污染（默认是`global["webpackJsonp"]`），造成加载模块出现错误，所以建议此种情需要对作为目录的uni项目的`vue.config.js`进行配置，添加`output.library`  
+## 与其他webpack打包后的文件进行混合时
+此情况一般出现在将uni项目打包后作为一个目录混合进其他小程序开发框架中，由于一些小程序开发框架也是使用webpack进行打包，会导致webpack的全局队列对象名称相互污染（默认是`global["webpackJsonp"]`），造成加载模块出现错误  
+#### uniapp2wxpack 版本小于3.3.25的方案  
+情需要对作为目录的uni项目的`vue.config.js`进行配置，添加`output.library`  
 ```javascript
 // vue.config.js
 const webpack = require('webpack')
@@ -660,5 +684,8 @@ module.exports = {
 }
 ```  
 这样设置后，uni项目打包出来的文件的webpack全局队列对象名称将被修改成`global["webpackJsonp" + output.library]`，这样就避免了对象名称污染的情况  
+#### uniapp2wxpack 版本大于等于3.3.25的方案  
+推荐使用系统插件setLibrary，见setLibrary详细说明  
+
 ## 其他  
 如果原生主小程序目录中已经存在了同uni解耦包命名相同的目录，在构建时，这个目录将被忽略，构建后的项目中的此目录是uni项目生成的解耦包

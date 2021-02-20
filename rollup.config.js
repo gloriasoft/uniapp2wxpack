@@ -7,6 +7,7 @@ import json from '@rollup/plugin-json'
 import commonjs from '@rollup/plugin-commonjs'
 import builtins from 'rollup-plugin-node-builtins'
 import {terser} from 'rollup-plugin-terser'
+import replace from '@rollup/plugin-replace'
 
 
 function killCommonjsRequire () {
@@ -14,6 +15,7 @@ function killCommonjsRequire () {
       name: 'killCommonjsRequire',
       transform(code) {
           return code.replace('throw new Error(\'Dynamic requires are not currently supported by @rollup/plugin-commonjs\')', 'return require.apply(null, arguments)')
+              .replace(`throw new Error('Could not dynamically require "' + target + '". Please configure the dynamicRequireTargets option of @rollup/plugin-commonjs appropriately for this require call to behave properly.')`, 'return require.apply(null, arguments)')
       },
   }
 }
@@ -36,6 +38,9 @@ const shared = {
     // babel({
     //     exclude: 'node_modules/**',
     // }),
+    replace({
+        'process.env.BABEL_ENV': JSON.stringify(process.env.BABEL_ENV)
+    }),
     terser({
       toplevel: true,
       mangle: {
@@ -48,7 +53,7 @@ const shared = {
       }
     })
   ],
-  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log', 'postcss-comment', 'htmlparser2', 'preprocess', 'vue-template-compiler', 'chokidar', 'vinyl'],
+  external: ['path', 'parse5', 'gulp', 'del', 'gulp-load-plugins', 'fs-extra', 'strip-json-comments', 'gulp-strip-comments', 'single-line-log', 'commander', 'child_process', 'single-line-log', 'postcss-comment', 'htmlparser2', 'preprocess', 'vue-template-compiler', 'chokidar', 'vinyl', 'shorthash2', 'acorn-globals', 'escodegen', 'getmac'],
 }
 
 export default [
@@ -58,13 +63,15 @@ export default [
     }, {
         output: {
             file: 'dist/lib/index.js',
-            format: 'cjs'
+            format: 'cjs',
+            exports: 'named'
         },
     }),
     Object.assign({}, shared, {
         output: {
             file: 'dist/gulpfile.js',
-            format: 'cjs'
+            format: 'cjs',
+            exports: 'named'
         },
     }),
 ]

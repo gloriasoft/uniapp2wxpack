@@ -24,7 +24,9 @@ function runPlugins (root) {
             const absolutePath = path.resolve(root, this.file.relative)
             const pathObject = {
                 relative: absolutePath.replace(new RegExp(`^${targetPath.replace(/\\/g, '\\\\')}`), '').replace(/\\/g, '/'),
-                absolute: absolutePath
+                absolute: absolutePath,
+                fromAbsolute: this.file.path,
+                fromRelative: this.file.relative
             }
             // 给Vinyl对象绑定创建后删除该文件的方法
             this.removeAfterAdd = function (path) {

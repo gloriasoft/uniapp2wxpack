@@ -14,7 +14,8 @@ const mpTypeNamespace = {
         globalObject: 'wx',
         mainMpPath: 'mainWeixinMpPath',
         directivePrefix: 'wx:',
-        projectConfig: 'project.config.json'
+        projectConfig: 'project.config.json',
+        pluginConfig: 'plugin.json'
     },
     baidu: {
         html: 'swan',
@@ -38,7 +39,8 @@ const mpTypeNamespace = {
         globalObject: 'my',
         mainMpPath: 'mainAlipayMpPath',
         directivePrefix: 'a:',
-        projectConfig: 'mini.project.json'
+        projectConfig: 'mini.project.json',
+        pluginConfig: 'plugin.json'
     }
 }
 const currentNamespace = mpTypeNamespace[program.type]
@@ -57,6 +59,7 @@ const regExpUniImportWxss = new RegExp(`(}|^|\\s|;)${uniImportWxssApiName}\\s*{(
 const configWxResourceKey = projectToSubPackageConfig.configWxResourceKey || 'wxResource'
 const pluginProcessFileTypes = projectToSubPackageConfig.pluginProcessFileTypes || ['js', 'json', 'wxml', 'ttml', 'ttss', 'swan', 'css', 'html', 'wxss', 'htm', 'wxs', 'sjs', 'acss', 'axml']
 const projectConfigPath = projectToSubPackageConfig.projectConfigPath || ''
+const pluginTypeMiniProgramRoot = projectToSubPackageConfig.pluginTypeMiniProgramRoot || 'miniprogram'
 
 let env = 'dev'
 if(process.env.NODE_ENV === 'production'){
@@ -98,5 +101,6 @@ module.exports = {
     packIsSubpackage,
     mpTypeNamespace,
     sourceCodePath,
-    projectConfigPath
+    projectConfigPath,
+    pluginTypeMiniProgramRoot
 }

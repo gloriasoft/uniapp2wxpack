@@ -14,7 +14,8 @@ const {
     packIsSubpackage,
     currentNamespace,
     mpTypeNamespace,
-    pluginProcessFileTypes
+    pluginProcessFileTypes,
+    pluginTypeMiniProgramRoot
 } = require('../preset')
 const {writeLastLine} = require('../utils')
 const {runPlugins} = require('../plugins')
@@ -99,9 +100,9 @@ gulp.task('watch:mainWeixinMp', function () {
         }))
         .pipe(filterAllCss.restore)
         .pipe(filterPluginsFiles)
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))), {
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? `/${pluginTypeMiniProgramRoot}` : ''))), {
             skipBinary: false
         }))
         .pipe(filterPluginsFiles.restore)
-        .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}));
+        .pipe(gulp.dest(target + (program.plugin ? `/${pluginTypeMiniProgramRoot}` : ''), {cwd}));
 })

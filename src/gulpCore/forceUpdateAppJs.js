@@ -11,7 +11,8 @@ const {
     targetPath,
     packIsSubpackage,
     currentNamespace,
-    target
+    target,
+    pluginTypeMiniProgramRoot
 } = require('./preset')
 
 function forceUpdateAppJs () {
@@ -35,7 +36,7 @@ function forceUpdateAppJs () {
             path: appJsPath,
             // contents: new Buffer(insertJs + appJs)
         });
-        fs.outputFileSync(targetPath + '/' + appJsVinyl.relative, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))).call({
+        fs.outputFileSync(targetPath + '/' + appJsVinyl.relative, runPlugins(path.resolve(cwd, target + (program.plugin ? `/${pluginTypeMiniProgramRoot}` : ''))).call({
             file: appJsVinyl
         }, insertJs + appJs))
     }

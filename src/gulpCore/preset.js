@@ -14,7 +14,8 @@ const mpTypeNamespace = {
         globalObject: 'wx',
         mainMpPath: 'mainWeixinMpPath',
         directivePrefix: 'wx:',
-        projectConfig: 'project.config.json'
+        projectConfig: 'project.config.json',
+        webpackGlobal: 'global'
     },
     baidu: {
         html: 'swan',
@@ -22,7 +23,8 @@ const mpTypeNamespace = {
         globalObject: 'swan',
         mainMpPath: 'mainBaiduMpPath',
         directivePrefix: 's-',
-        projectConfig: 'project.swan.json'
+        projectConfig: 'project.swan.json',
+        webpackGlobal: 'global'
     },
     toutiao: {
         html: 'ttml',
@@ -30,7 +32,8 @@ const mpTypeNamespace = {
         globalObject: 'tt',
         mainMpPath: 'mainToutiaoMpPath',
         directivePrefix: 'tt:',
-        projectConfig: 'project.config.json'
+        projectConfig: 'project.config.json',
+        webpackGlobal: 'global'
     },
     alipay: {
         html: 'axml',
@@ -38,7 +41,8 @@ const mpTypeNamespace = {
         globalObject: 'my',
         mainMpPath: 'mainAlipayMpPath',
         directivePrefix: 'a:',
-        projectConfig: 'mini.project.json'
+        projectConfig: 'mini.project.json',
+        webpackGlobal: 'my'
     }
 }
 const currentNamespace = mpTypeNamespace[program.type]

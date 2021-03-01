@@ -68,9 +68,11 @@
             '--scope', process.cwd(),
             ...(program.plugin ? ['--plugin'] : []),
             ...(program.native ? ['--native'] : []),
-            '--type', program.type
+            '--type', program.type,
+            '--gulpfile', path.resolve(__dirname, '../gulpfile.js'),
+            '--cwd', process.cwd(),
         ], {
-            cwd: __dirname,
+            cwd: process.cwd(),
             stdio: 'inherit'
         });
         return

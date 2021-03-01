@@ -1,14 +1,14 @@
 {
   "name": "uniapp2wxpack",
-  "version": "3.3.27",
-  "description": "",
+  "version": "3.4.0",
+  "description": "Uni-App的小程序混合开发（解耦构建）插件",
   "main": "./dist/lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node customBuild && terser src/index.js -o dist/index.js -m -c toplevel && cross-env BABEL_ENV=rollup rollup -c"
+    "build": "node customBuild && terser src/index.js -o dist/bin/index.js -m -c toplevel && cross-env BABEL_ENV=rollup rollup -c"
   },
   "bin": {
-    "uniapp2wxpack": "./dist/index.js"
+    "uniapp2wxpack": "./dist/bin/index.js"
   },
   "files": [
     "dist"

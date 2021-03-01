@@ -5,6 +5,9 @@ program
     .option('--plugin', '插件模式')
     .option('--type <type>', '解耦包类型(哪种小程序)', 'weixin')
     .option('--native', '原生模式')
+    .option('--gulpfile', '')
+    .option('--cwd', '')
+
 program.parse(process.argv);
 // 支持多种小程序解耦构建，默认为微信
 const mpTypeNamespace = {

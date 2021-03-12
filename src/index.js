@@ -69,7 +69,7 @@
             ...(program.plugin ? ['--plugin'] : []),
             ...(program.native ? ['--native'] : []),
             '--type', program.type,
-            '--gulpfile', path.resolve(__dirname, '../gulpfile.js'),
+            '--gulpfile', path.resolve(__dirname, './gulpfile.js'),
             '--cwd', process.cwd(),
         ], {
             cwd: process.cwd(),

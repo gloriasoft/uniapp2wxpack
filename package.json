@@ -1,7 +1,7 @@
 {
   "name": "uniapp2wxpack",
-  "version": "3.3.26",
-  "description": "",
+  "version": "3.4.2",
+  "description": "Uni-App的小程序混合开发（解耦构建）插件",
   "main": "./dist/lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

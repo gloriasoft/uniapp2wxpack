@@ -5,6 +5,9 @@ program
     .option('--plugin', '插件模式')
     .option('--type <type>', '解耦包类型(哪种小程序)', 'weixin')
     .option('--native', '原生模式')
+    .option('--gulpfile', '')
+    .option('--cwd', '')
+
 program.parse(process.argv);
 // 支持多种小程序解耦构建，默认为微信
 const mpTypeNamespace = {
@@ -15,7 +18,8 @@ const mpTypeNamespace = {
         mainMpPath: 'mainWeixinMpPath',
         directivePrefix: 'wx:',
         projectConfig: 'project.config.json',
-        pluginConfig: 'plugin.json'
+        pluginConfig: 'plugin.json',
+        webpackGlobal: 'global'
     },
     baidu: {
         html: 'swan',
@@ -23,7 +27,8 @@ const mpTypeNamespace = {
         globalObject: 'swan',
         mainMpPath: 'mainBaiduMpPath',
         directivePrefix: 's-',
-        projectConfig: 'project.swan.json'
+        projectConfig: 'project.swan.json',
+        webpackGlobal: 'global'
     },
     toutiao: {
         html: 'ttml',
@@ -31,7 +36,8 @@ const mpTypeNamespace = {
         globalObject: 'tt',
         mainMpPath: 'mainToutiaoMpPath',
         directivePrefix: 'tt:',
-        projectConfig: 'project.config.json'
+        projectConfig: 'project.config.json',
+        webpackGlobal: 'global'
     },
     alipay: {
         html: 'axml',
@@ -40,7 +46,8 @@ const mpTypeNamespace = {
         mainMpPath: 'mainAlipayMpPath',
         directivePrefix: 'a:',
         projectConfig: 'mini.project.json',
-        pluginConfig: 'plugin.json'
+        pluginConfig: 'plugin.json',
+        webpackGlobal: 'my'
     }
 }
 const currentNamespace = mpTypeNamespace[program.type]

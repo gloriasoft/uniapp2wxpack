@@ -33,6 +33,8 @@ module.exports={
     uniImportWxssApiName: null,
     // uni项目中的原生资源在pages.json中的特殊属性名称，null代表使用默认值，默认值为 wxResource (所有类型小程序通用)
     configWxResourceKey: null,
+    // 插件模式时，输出的预览小程序的目录名，默认是miniprogram
+    pluginTypeMiniProgramRoot: 'miniprogram',
     // 插件
     plugins: [
         // 条件编译插件应该在混写插件之前使用

@@ -1,6 +1,6 @@
 const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
-const {cwd, target, env, projectToSubPackageConfig, program, basePath, currentNamespace, mpTypeNamespace, pluginProcessFileTypes} = require('../preset')
+const {cwd, target, env, projectToSubPackageConfig, program, basePath, currentNamespace, mpTypeNamespace, pluginProcessFileTypes, pluginTypeMiniProgramRoot} = require('../preset')
 const {writeLastLine} = require('../utils')
 const fs = require('fs-extra')
 const {runPlugins} = require('../plugins')
@@ -39,9 +39,9 @@ gulp.task('watch:topMode-mainAppJsAndAppWxss', function () {
         }))
         .pipe(filterAppWxss.restore)
         .pipe(filterPluginsFiles)
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))), {
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? `/${pluginTypeMiniProgramRoot}` : ''))), {
             skipBinary: false
         }))
         .pipe(filterPluginsFiles.restore)
-        .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
+        .pipe(gulp.dest(target + (program.plugin ? `/${pluginTypeMiniProgramRoot}` : ''), {cwd}))
 })

@@ -1,6 +1,6 @@
 const gulp = require('gulp')
 const $ = require('gulp-load-plugins')()
-const {cwd, target, env, projectToSubPackageConfig, program, currentNamespace, pluginProcessFileTypes} = require('../preset')
+const {cwd, target, env, projectToSubPackageConfig, program, currentNamespace, pluginProcessFileTypes, pluginTypeMiniProgramRoot} = require('../preset')
 const path = require('path')
 const {writeLastLine} = require('../utils')
 const mergeToTargetJson = require('../mergeToTargetJson')
@@ -17,9 +17,9 @@ gulp.task('watch:mainAppJson', function () {
         })))
         .pipe(mergeToTargetJson('mainAppJson'))
         .pipe(filterPluginsFiles)
-        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? '/miniprogram' : ''))), {
+        .pipe($.replace(/[\s\S]*/, runPlugins(path.resolve(cwd, target + (program.plugin ? `/${pluginTypeMiniProgramRoot}` : ''))), {
             skipBinary: false
         }))
         .pipe(filterPluginsFiles.restore)
-        .pipe(gulp.dest(target + (program.plugin ? '/miniprogram' : ''), {cwd}))
+        .pipe(gulp.dest(target + (program.plugin ? `/${pluginTypeMiniProgramRoot}` : ''), {cwd}))
 })

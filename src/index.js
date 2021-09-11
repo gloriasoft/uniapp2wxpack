@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-1
+
 (function(){
     const path = require('path')
     const { program } = require('commander')

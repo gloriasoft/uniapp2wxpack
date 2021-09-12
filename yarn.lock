@@ -830,6 +830,15 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
+"@dcloudio/uni-cli-shared@^2.0.0-32220210818002":
+  version "2.0.0-32220210818002"
+  resolved "https://registry.nlark.com/@dcloudio/uni-cli-shared/download/@dcloudio/uni-cli-shared-2.0.0-32220210818002.tgz?cache=0&sync_timestamp=1631001969089&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40dcloudio%2Funi-cli-shared%2Fdownload%2F%40dcloudio%2Funi-cli-shared-2.0.0-32220210818002.tgz#751eb420481066ff4d23ffb686edc4beb65a1fa3"
+  integrity sha1-dR60IEgQZv9NI/+2hu3EvrZaH6M=
+  dependencies:
+    hash-sum "^1.0.2"
+    postcss-urlrewrite "^0.2.2"
+    strip-json-comments "^2.0.1"
+
 "@rollup/plugin-commonjs@^17.1.0":
   version "17.1.0"
   resolved "https://registry.npm.taobao.org/@rollup/plugin-commonjs/download/@rollup/plugin-commonjs-17.1.0.tgz?cache=0&sync_timestamp=1612166277459&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40rollup%2Fplugin-commonjs%2Fdownload%2F%40rollup%2Fplugin-commonjs-17.1.0.tgz#757ec88737dffa8aa913eb392fade2e45aef2a2d"
@@ -3330,6 +3339,11 @@ hash-base@^3.0.0:
     readable-stream "^3.6.0"
     safe-buffer "^5.2.0"
 
+hash-sum@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.nlark.com/hash-sum/download/hash-sum-1.0.2.tgz#33b40777754c6432573c120cc3808bbd10d47f04"
+  integrity sha1-M7QHd3VMZDJXPBIMw4CLvRDUfwQ=
+
 hash.js@^1.0.0, hash.js@^1.0.3:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/hash.js/-/hash.js-1.1.7.tgz#0babca538e8d4ee4a0f8988d68866537a003cf42"
@@ -4639,6 +4653,20 @@ postcss-comment@^2.0.0:
   dependencies:
     postcss "^6.0.0"
 
+postcss-helpers@^0.3.2:
+  version "0.3.2"
+  resolved "https://registry.npm.taobao.org/postcss-helpers/download/postcss-helpers-0.3.2.tgz#cf8721d8d6605d2577302f966afefda1fea9929c"
+  integrity sha1-z4ch2NZgXSV3MC+Wav79of6pkpw=
+  dependencies:
+    urijs "^1.18.12"
+
+postcss-urlrewrite@^0.2.2:
+  version "0.2.2"
+  resolved "https://registry.npm.taobao.org/postcss-urlrewrite/download/postcss-urlrewrite-0.2.2.tgz#bad53f4de04bc0812f278733314bd3062ed36bd4"
+  integrity sha1-utU/TeBLwIEvJ4czMUvTBi7Ta9Q=
+  dependencies:
+    postcss-helpers "^0.3.2"
+
 postcss@^6.0.0:
   version "6.0.23"
   resolved "https://registry.npm.taobao.org/postcss/download/postcss-6.0.23.tgz?cache=0&sync_timestamp=1607512891622&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fpostcss%2Fdownload%2Fpostcss-6.0.23.tgz#61c82cc328ac60e677645f979054eb98bc0e3324"
@@ -5497,6 +5525,11 @@ strip-eof@^1.0.0:
   resolved "https://registry.npm.taobao.org/strip-eof/download/strip-eof-1.0.0.tgz#bb43ff5598a6eb05d89b59fcd129c983313606bf"
   integrity sha1-u0P/VZim6wXYm1n80SnJgzE2Br8=
 
+strip-json-comments@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.nlark.com/strip-json-comments/download/strip-json-comments-2.0.1.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fstrip-json-comments%2Fdownload%2Fstrip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
+  integrity sha1-PFMZQukIwml8DsNEhYwobHygpgo=
+
 strip-json-comments@^3.0.1:
   version "3.1.1"
   resolved "https://registry.npm.taobao.org/strip-json-comments/download/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
@@ -5782,6 +5815,11 @@ upath@^1.1.1:
   version "1.2.0"
   resolved "https://registry.npm.taobao.org/upath/download/upath-1.2.0.tgz?cache=0&sync_timestamp=1604768637331&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fupath%2Fdownload%2Fupath-1.2.0.tgz#8f66dbcd55a883acdae4408af8b035a5044c1894"
   integrity sha1-j2bbzVWog6za5ECK+LA1pQRMGJQ=
+
+urijs@^1.18.12:
+  version "1.19.7"
+  resolved "https://registry.nlark.com/urijs/download/urijs-1.19.7.tgz?cache=0&sync_timestamp=1626280206335&other_urls=https%3A%2F%2Fregistry.nlark.com%2Furijs%2Fdownload%2Furijs-1.19.7.tgz#4f594e59113928fea63c00ce688fb395b1168ab9"
+  integrity sha1-T1lOWRE5KP6mPADOaI+zlbEWirk=
 
 urix@^0.1.0:
   version "0.1.0"

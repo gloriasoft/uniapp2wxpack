@@ -20,6 +20,9 @@
   },
   "author": "Devle Wu（天堂里的花大咩）",
   "license": "ISC",
+  "peerDependencies": {
+    "@dcloudio/uni-cli-shared": "^2.0.0"
+  },
   "dependencies": {
     "acorn-globals": "^6.0.0",
     "chokidar": "^3.4.2",
@@ -57,6 +60,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.7.4",
     "@babel/plugin-transform-runtime": "^7.9.0",
     "@babel/preset-env": "^7.7.4",
+    "@dcloudio/uni-cli-shared": "^2.0.0-32220210818002",
     "@rollup/plugin-commonjs": "^17.1.0",
     "@rollup/plugin-json": "^4.0.3",
     "@rollup/plugin-node-resolve": "^8.0.0",
